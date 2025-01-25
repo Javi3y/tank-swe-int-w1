@@ -53,7 +53,9 @@ async def get_current_user(
     )
     return results.scalar()
 
+
 router = APIRouter(prefix="/login", tags=["login"])
+
 
 @router.post("/")
 async def login(
@@ -61,7 +63,10 @@ async def login(
     db: Session = Depends(get_db),
 ):
     results = await db.execute(
-        select(models.User).where((models.User.username == user_credentials.username) | (models.User.email == user_credentials.username))
+        select(models.User).where(
+            (models.User.username == user_credentials.username)
+            | (models.User.email == user_credentials.username)
+        )
     )
     user = results.scalar()
     if not user or not user_credentials.password == user.password:

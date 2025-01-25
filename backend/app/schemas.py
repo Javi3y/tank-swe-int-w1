@@ -1,12 +1,16 @@
-from enum import Enum
-from typing import Optional, Union
+from __future__ import annotations
+from typing import Union
 from pydantic import (
-    UUID4,
     BaseModel,
     EmailStr,
 )
+from typing import Union
+
+from pydantic_core import Url
+
 
 # token
+
 
 class Token(BaseModel):
     access_token: str
@@ -20,26 +24,53 @@ class TokenData(BaseModel):
 # users
 
 
-class User(BaseModel):
+class UserBase(BaseModel):
     username: str
     email: EmailStr
+    phone_number: str
+    name: str
+    sur_name: str
 
     class Config:
         from_attributes = True
 
 
-class UserCreate(User):
+class UserCreate(UserBase):
     password: str
 
 
-class UserOut(User):
+class UserOut(UserBase):
     id: int
 
 
-class UserLogin(User):
+class UserLogin(BaseModel):
     password: str
 
 
 class UserUpdate(BaseModel):
+    username: Union[str, None] = None
+    password: Union[str, None] = None
+
+
+class City(BaseModel):
+    name: str
+
+
+class AuthorBase(UserBase):
+    city: int
+    goodreads: str
+    bank_acount: str
+
+
+class AuthorCreate(AuthorBase):
+    id: int
+    password: str
+
+
+class AuthorOut(AuthorBase):
+    id: int
+
+
+class AuthorUpdate(BaseModel):
     username: Union[str, None] = None
     password: Union[str, None] = None

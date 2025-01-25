@@ -12,9 +12,12 @@ SessionLocal = async_sessionmaker(autocommit=False, autoflush=False, bind=engine
 
 
 @as_declarative()
-class Base():
+class Base:
     id = Column(Integer, nullable=False, primary_key=True)
-    created_at = Column("created_at", DateTime(), default=current_timestamp(), nullable=False)
+    created_at = Column(
+        "created_at", DateTime(), default=current_timestamp(), nullable=False
+    )
+
 
 async def get_db():
     db = SessionLocal()
