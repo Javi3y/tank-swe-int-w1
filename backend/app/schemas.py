@@ -74,4 +74,3 @@ class AuthorOut(AuthorBase):
 class AuthorUpdate(BaseModel):
     username: Union[str, None] = None
     password: Union[str, None] = None
-

@@ -76,7 +76,31 @@ class Subscription(Base):
     start = Column("start", DateTime(), default=current_timestamp(), nullable=False)
     end = Column("end", DateTime(), default=current_timestamp(), nullable=False)
 
+
 class Genre(Base):
     __tablename__ = "genre"
     name = Column(String, nullable=False, unique=True)
+
+
+class Book(Base):
+    __tablename__ = "book"
+    title = Column(String, nullable=False)
+    isbn = Column(String, nullable=False, unique=True)
+    price = Column(Integer, nullable=False)
+    units = Column(Integer, nullable=False, default=0)
+    description = Column(String, nullable=False)
+
+class BookAuthor(Base):
+    __tablename__ = "book_author"
+    author_id = Column(ForeignKey("author.id", ondelete="CASCADE"), nullable=False)
+    author = relationship("Author")
+    book_id = Column(ForeignKey("book.id", ondelete="CASCADE"), nullable=False)
+    author = relationship("Book")
+
+class BookGenre(Base):
+    __tablename__ = "book_genre"
+    gente_id = Column(ForeignKey("genre.id", ondelete="CASCADE"), nullable=False)
+    author = relationship("Genre")
+    book_id = Column(ForeignKey("book.id", ondelete="CASCADE"), nullable=False)
+    author = relationship("Book")
 

@@ -49,7 +49,6 @@ async def update_user(
     return client
 
 
-
 @router.delete("/")
 async def delete_user(
     current_user: models.User = Depends(get_current_user),
