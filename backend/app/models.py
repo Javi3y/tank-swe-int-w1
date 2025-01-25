@@ -77,5 +77,6 @@ class Subscription(Base):
     end = Column("end", DateTime(), default=current_timestamp(), nullable=False)
 
 class Genre(Base):
+    __tablename__ = "genre"
     name = Column(String, nullable=False, unique=True)
 
