@@ -30,6 +30,12 @@ class UserBase(BaseModel):
     class Config:
         from_attributes = True
 
+class UserIn(UserBase):
+    password: int
+
+class UserOut(UserBase):
+    id: int
+
 
 class ClientBase(UserBase):
     pass
@@ -65,3 +71,4 @@ class AuthorBase(ClientBase):
 
 class AuthorOut(AuthorBase):
     id: int
+

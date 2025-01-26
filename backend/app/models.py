@@ -12,6 +12,7 @@ from sqlalchemy.sql.functions import current_timestamp
 class Typ(enum.Enum):
     client = "client"
     author = "author"
+    admin = "admin"
 
 
 class User(Base):
@@ -58,6 +59,13 @@ class SubscriptionEnum(enum.Enum):
     plus = 2
     premium = 3
 
+
+class Admin(User):
+    __tablename__ = "admin"
+    id = mapped_column(ForeignKey("user.id"), primary_key=True)
+    __mapper_args__ = {
+        "polymorphic_identity": Typ("admin"),
+    }
 
 class Client(User):
     __tablename__ = "client"
