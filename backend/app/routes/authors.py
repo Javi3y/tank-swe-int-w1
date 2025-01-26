@@ -27,9 +27,7 @@ router = APIRouter(prefix="/authors", tags=["Authors"])
 
 @router.get("/", response_model=List[schemas.AuthorOut])
 async def get_authors(db: AsyncSession = Depends(get_db)):
-    authors = await db.execute(
-        select(models.Author)
-    )
+    authors = await db.execute(select(models.Author))
     return authors.scalars().all()
 
 

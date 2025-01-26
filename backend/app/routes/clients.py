@@ -17,7 +17,9 @@ router = APIRouter(prefix="/clients", tags=["Clients"])
 
 
 @router.post("/")
-async def create_client(client: schemas.ClientCreate, db: AsyncSession = Depends(get_db)):
+async def create_client(
+    client: schemas.ClientCreate, db: AsyncSession = Depends(get_db)
+):
     new_client = models.Client(**client.model_dump())
     new_client.typ = "client"
     db.add(new_client)

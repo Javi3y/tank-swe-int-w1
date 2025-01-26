@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException, Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.status import (
+    HTTP_204_NO_CONTENT,
     HTTP_401_UNAUTHORIZED,
     HTTP_404_NOT_FOUND,
 )
@@ -10,8 +11,6 @@ from app import models, schemas
 from app.auth import get_current_user
 from app.database import get_db
 from fastapi import Depends
-
-from app.routes.authors import get_authors
 
 
 router = APIRouter(prefix="/books", tags=["Books"])
@@ -94,13 +93,14 @@ async def get_book(id: int, db: AsyncSession = Depends(get_db)):
 async def get_authors(
     id: int,
     db: AsyncSession = Depends(get_db),
-    ):
-        book = await db.execute(select(models.Book).where(models.Book.id == id))
-        book = book.scalar()
-        if not book:
-            raise HTTPException(HTTP_404_NOT_FOUND, detail="book not found")
+):
+    book = await db.execute(select(models.Book).where(models.Book.id == id))
+    book = book.scalar()
+    if not book:
+        raise HTTPException(HTTP_404_NOT_FOUND, detail="book not found")
 
-        return book.authors
+    return book.authors
+
 
 @router.post("/{id}/authors", response_model=schemas.BookOut)
 async def add_author(
@@ -114,10 +114,7 @@ async def add_author(
     book = book.scalar()
     if not book:
         raise HTTPException(HTTP_404_NOT_FOUND, detail="book not found")
-    author = await db.execute(
-        select(models.Author)
-        .where(models.Author.id == author)
-    )
+    author = await db.execute(select(models.Author).where(models.Author.id == author))
     author = author.scalar()
     if not author:
         raise HTTPException(HTTP_404_NOT_FOUND, detail="author not found")
@@ -129,3 +126,33 @@ async def add_author(
     await db.refresh(author)
     await db.refresh(book)
     return book
+
+
+@router.delete("/{id}/{author_id}")
+async def delete_author(
+    id: int,
+    author_id: int,
+    current_user: int = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    await check_admin(current_user)
+
+    book = await db.execute(select(models.Book).where(models.Book.id == id))
+    book = book.scalar()
+    if not book:
+        raise HTTPException(HTTP_404_NOT_FOUND, detail="book not found")
+    author = await db.execute(
+        select(models.Author).where(models.Author.id == author_id)
+    )
+    author = author.scalar()
+    if not author:
+        raise HTTPException(HTTP_404_NOT_FOUND, detail="author not found")
+    author_book = await db.execute(
+        select(models.BookAuthor)
+        .where(models.BookAuthor.book_id == book.id)
+        .where(models.BookAuthor.author_id == author.id)
+    )
+    author_book = author_book.scalar()
+    await db.delete(author_book)
+    await db.commit()
+    return Response(status_code=HTTP_204_NO_CONTENT)
