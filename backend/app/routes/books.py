@@ -11,6 +11,8 @@ from app.auth import get_current_user
 from app.database import get_db
 from fastapi import Depends
 
+from app.routes.authors import get_authors
+
 
 router = APIRouter(prefix="/books", tags=["Books"])
 
@@ -88,7 +90,19 @@ async def get_book(id: int, db: AsyncSession = Depends(get_db)):
     return book
 
 
-@router.post("/{id}", response_model=schemas.BookOut)
+@router.get("/{id}/authors", response_model=List[schemas.AuthorOut])
+async def get_authors(
+    id: int,
+    db: AsyncSession = Depends(get_db),
+    ):
+        book = await db.execute(select(models.Book).where(models.Book.id == id))
+        book = book.scalar()
+        if not book:
+            raise HTTPException(HTTP_404_NOT_FOUND, detail="book not found")
+
+        return book.authors
+
+@router.post("/{id}/authors", response_model=schemas.BookOut)
 async def add_author(
     id: int,
     author: int,
