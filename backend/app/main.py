@@ -2,7 +2,7 @@ from fastapi import FastAPI
 
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routes import clients, authors, users, admin
+from .routes import clients, authors, users, admin, books
 from . import auth
 
 app = FastAPI()
@@ -18,7 +18,9 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
+app.include_router(books.router)
 app.include_router(clients.router)
 app.include_router(authors.router)
 app.include_router(admin.router)
+app.include_router(users.router)
 app.include_router(users.router)

@@ -72,3 +72,10 @@ class AuthorBase(ClientBase):
 class AuthorOut(AuthorBase):
     id: int
 
+
+class Book(BaseModel):
+    title: str
+    isbn: str
+    price: int
+    units:int
+    description: str

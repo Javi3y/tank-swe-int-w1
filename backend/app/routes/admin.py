@@ -13,7 +13,6 @@ router = APIRouter(prefix="/admin", tags=["Admins"])
 
 
 def check_admin(admin):
-    print(admin.typ)
     if admin.typ != models.Typ("admin"):
         raise HTTPException(HTTP_401_UNAUTHORIZED, detail="you are not an admin")
 
