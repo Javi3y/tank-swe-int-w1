@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from .database import Base
-from sqlalchemy.orm import mapped_column, relationship
-from sqlalchemy import Column, ForeignKey, String, Enum, DateTime, Integer
+from sqlalchemy.orm import backref, mapped_column, relationship
+from sqlalchemy import Boolean, Column, ForeignKey, String, Enum, DateTime, Integer
 import enum
 from sqlalchemy_utils import EmailType, PasswordType, URLType
 
@@ -45,9 +45,13 @@ class Author(User):
     __tablename__ = "author"
     id = mapped_column(ForeignKey("user.id"), primary_key=True)
     city_id = Column(ForeignKey("city.id", ondelete="CASCADE"), nullable=False)
-    city = relationship("City")
+    city = relationship("City", lazy="selectin")
     goodreads = Column(URLType, nullable=False, unique=True)
     bank_acount = Column(String, nullable=False, unique=True)
+
+    books = relationship(
+        "Book", secondary="book_author", back_populates="authors", lazy="selectin"
+    )
 
     __mapper_args__ = {
         "polymorphic_identity": Typ("author"),
@@ -66,6 +70,7 @@ class Admin(User):
     __mapper_args__ = {
         "polymorphic_identity": Typ("admin"),
     }
+
 
 class Client(User):
     __tablename__ = "client"
@@ -98,6 +103,10 @@ class Book(Base):
     units = Column(Integer, nullable=False, default=0)
     description = Column(String, nullable=False)
 
+    authors = relationship(
+        "Author", secondary="book_author", back_populates="books", lazy="selectin"
+    )
+
 
 class BookAuthor(Base):
     __tablename__ = "book_author"
@@ -109,8 +118,8 @@ class BookAuthor(Base):
 
 class BookGenre(Base):
     __tablename__ = "book_genre"
-    gente_id = Column(ForeignKey("genre.id", ondelete="CASCADE"), nullable=False)
-    author = relationship("Genre")
+    genre_id = Column(ForeignKey("genre.id", ondelete="CASCADE"), nullable=False)
+    genre = relationship("Genre")
     book_id = Column(ForeignKey("book.id", ondelete="CASCADE"), nullable=False)
     book = relationship("Book")
 

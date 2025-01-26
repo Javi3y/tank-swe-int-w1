@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Union
+from typing import List, Union
 from pydantic import (
     BaseModel,
     EmailStr,
@@ -30,8 +30,10 @@ class UserBase(BaseModel):
     class Config:
         from_attributes = True
 
+
 class UserIn(UserBase):
     password: int
+
 
 class UserOut(UserBase):
     id: int
@@ -77,5 +79,10 @@ class Book(BaseModel):
     title: str
     isbn: str
     price: int
-    units:int
+    units: int
     description: str
+
+
+class BookOut(Book):
+    id: int
+    authors: List[AuthorOut]

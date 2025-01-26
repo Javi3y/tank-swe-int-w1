@@ -61,7 +61,9 @@ async def get_authors(db: Session = Depends(get_db)):
 
 
 @router.get("/profile", response_model=schemas.AuthorOut)
-async def get_profile(current_author: int = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_profile(
+    current_author: int = Depends(get_current_user), db: Session = Depends(get_db)
+):
     if current_author.typ != models.Typ("author"):
         raise HTTPException(HTTP_401_UNAUTHORIZED, detail="you are not an author")
     author = await db.execute(
