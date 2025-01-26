@@ -1,13 +1,12 @@
 from typing import List
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
-from sqlalchemy.sql.functions import current_user
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.status import HTTP_401_UNAUTHORIZED
 from app import models, schemas
 from app.auth import get_current_user
 from app.database import get_db
 from fastapi import Depends
-from sqlalchemy.orm import Session, selectinload
 
 router = APIRouter(prefix="/admin", tags=["Admins"])
 
@@ -19,7 +18,7 @@ async def check_admin(admin):
 
 @router.get("/", response_model=List[schemas.UserOut])
 async def get_admin(
-    current_admin: int = Depends(get_current_user), db: Session = Depends(get_db)
+    current_admin: int = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
     await check_admin(current_admin)
     admins = await db.execute(select(models.Admin))
@@ -28,7 +27,7 @@ async def get_admin(
 
 @router.get("/profile", response_model=schemas.UserOut)
 async def get_profile(
-    current_admin: int = Depends(get_current_user), db: Session = Depends(get_db)
+    current_admin: int = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
     await check_admin(current_admin)
     author = await db.execute(

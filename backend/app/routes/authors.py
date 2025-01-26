@@ -1,18 +1,19 @@
 from typing import List
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.status import HTTP_401_UNAUTHORIZED
 from app import models, schemas
 from app.auth import get_current_user
 from app.database import get_db
 from fastapi import Depends
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import selectinload
 
 router = APIRouter(prefix="/authors", tags=["Authors"])
 
 
 # @router.post("/")
-# async def create_author(author: schemas.AuthorCreate, db: Session = Depends(get_db)):
+# async def create_author(author: schemas.AuthorCreate, db: AsyncSession = Depends(get_db)):
 #    new_author = models.Author(**author.model_dump())
 #    city = await db.execute(
 #        select(models.City).where(models.City.id == new_author.city)
@@ -25,9 +26,9 @@ router = APIRouter(prefix="/authors", tags=["Authors"])
 
 
 @router.get("/", response_model=List[schemas.AuthorOut])
-async def get_authors(db: Session = Depends(get_db)):
+async def get_authors(db: AsyncSession = Depends(get_db)):
     authors = await db.execute(
-        select(models.Author).options(selectinload(models.Author.city))
+        select(models.Author)
     )
     return authors.scalars().all()
 
@@ -36,7 +37,7 @@ async def get_authors(db: Session = Depends(get_db)):
 # async def update_author(
 #    updated_author: schemas.AuthorUpdate,
 #    current_author: int = Depends(get_current_user),
-#    db: Session = Depends(get_db),
+#    db: AsyncSession = Depends(get_db),
 # ):
 #    author = current_author
 #
@@ -53,7 +54,7 @@ async def get_authors(db: Session = Depends(get_db)):
 # @router.delete("/")
 # async def delete_author(
 #    current_author: models.User = Depends(get_current_user),
-#    db: Session = Depends(get_db),
+#    db: AsyncSession = Depends(get_db),
 # ):
 #    await db.delete(current_author)
 #    await db.commit()
@@ -62,7 +63,7 @@ async def get_authors(db: Session = Depends(get_db)):
 
 @router.get("/profile", response_model=schemas.AuthorOut)
 async def get_profile(
-    current_author: int = Depends(get_current_user), db: Session = Depends(get_db)
+    current_author: int = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
     if current_author.typ != models.Typ("author"):
         raise HTTPException(HTTP_401_UNAUTHORIZED, detail="you are not an author")

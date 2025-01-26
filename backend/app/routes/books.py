@@ -1,8 +1,8 @@
 from typing import List
 from fastapi import APIRouter, HTTPException, Response
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.status import (
-    HTTP_204_NO_CONTENT,
     HTTP_401_UNAUTHORIZED,
     HTTP_404_NOT_FOUND,
 )
@@ -10,7 +10,6 @@ from app import models, schemas
 from app.auth import get_current_user
 from app.database import get_db
 from fastapi import Depends
-from sqlalchemy.orm import Session, selectinload
 
 
 router = APIRouter(prefix="/books", tags=["Books"])
@@ -28,7 +27,7 @@ async def check_admin(user):
 async def create_book(
     book: schemas.Book,
     current_user: int = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     await check_admin(current_user)
     new_book = models.Book(**book.model_dump())
@@ -39,7 +38,7 @@ async def create_book(
 
 
 @router.get("/", response_model=List[schemas.BookOut])
-async def get_books(db: Session = Depends(get_db)):
+async def get_books(db: AsyncSession = Depends(get_db)):
     books = await db.execute(select(models.Book))
     return books.scalars().all()
 
@@ -50,7 +49,7 @@ async def get_books(db: Session = Depends(get_db)):
 # async def update_client(
 #    updated_client: schemas.ClientUpdate,
 #    current_client: int = Depends(get_current_user),
-#    db: Session = Depends(get_db),
+#    db: AsyncSession = Depends(get_db),
 # ):
 #    if not client:
 #        raise HTTPException(HTTP_404_NOT_FOUND, detail="client does not exist")
@@ -70,7 +69,7 @@ async def get_books(db: Session = Depends(get_db)):
 # @router.delete("/")
 # async def delete_client(
 #    current_client: models.User = Depends(get_current_user),
-#    db: Session = Depends(get_db),
+#    db: AsyncSession = Depends(get_db),
 # ):
 #    if not current_client:
 #        raise HTTPException(HTTP_404_NOT_FOUND, detail="client doesn't exist")
@@ -81,7 +80,7 @@ async def get_books(db: Session = Depends(get_db)):
 #
 #
 @router.get("/{id}", response_model=schemas.BookOut)
-async def get_book(id: int, db: Session = Depends(get_db)):
+async def get_book(id: int, db: AsyncSession = Depends(get_db)):
     book = await db.execute(select(models.Book).where(models.Book.id == id))
     book = book.scalar()
     if not book:
@@ -94,7 +93,7 @@ async def add_author(
     id: int,
     author: int,
     current_user: int = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     await check_admin(current_user)
     book = await db.execute(select(models.Book).where(models.Book.id == id))

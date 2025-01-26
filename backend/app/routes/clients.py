@@ -1,6 +1,7 @@
 from typing import List
 from fastapi import APIRouter, HTTPException, Response
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.status import (
     HTTP_204_NO_CONTENT,
     HTTP_401_UNAUTHORIZED,
@@ -10,14 +11,13 @@ from app import models, schemas
 from app.auth import get_current_user
 from app.database import get_db
 from fastapi import Depends
-from sqlalchemy.orm import Session
 
 
 router = APIRouter(prefix="/clients", tags=["Clients"])
 
 
 @router.post("/")
-async def create_client(client: schemas.ClientCreate, db: Session = Depends(get_db)):
+async def create_client(client: schemas.ClientCreate, db: AsyncSession = Depends(get_db)):
     new_client = models.Client(**client.model_dump())
     new_client.typ = "client"
     db.add(new_client)
@@ -27,7 +27,7 @@ async def create_client(client: schemas.ClientCreate, db: Session = Depends(get_
 
 
 @router.get("/", response_model=List[schemas.ClientOut])
-async def get_client(db: Session = Depends(get_db)):
+async def get_client(db: AsyncSession = Depends(get_db)):
     clients = await db.execute(select(models.Client))
     return clients.scalars().all()
 
@@ -36,9 +36,9 @@ async def get_client(db: Session = Depends(get_db)):
 async def update_client(
     updated_client: schemas.ClientUpdate,
     current_client: int = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
-    if not client:
+    if not current_client:
         raise HTTPException(HTTP_404_NOT_FOUND, detail="client does not exist")
 
     client = current_client
@@ -56,7 +56,7 @@ async def update_client(
 @router.delete("/")
 async def delete_client(
     current_client: models.User = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     if not current_client:
         raise HTTPException(HTTP_404_NOT_FOUND, detail="client doesn't exist")

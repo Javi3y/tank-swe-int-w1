@@ -1,16 +1,16 @@
 from typing import List
 from fastapi import APIRouter
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from app import models, schemas
 from app.database import get_db
 from fastapi import Depends
-from sqlalchemy.orm import Session
 
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
-@router.get("/", response_model=List[schemas.ClientOut])
-async def get_users(db: Session = Depends(get_db)):
-    clients = await db.execute(select(models.Client))
-    return clients.scalars().all()
+@router.get("/", response_model=List[schemas.UserOut])
+async def get_users(db: AsyncSession = Depends(get_db)):
+    users = await db.execute(select(models.User))
+    return users.scalars().all()

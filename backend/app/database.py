@@ -20,8 +20,5 @@ class Base:
 
 
 async def get_db():
-    db = SessionLocal()
-    try:
+    async with SessionLocal() as db:
         yield db
-    finally:
-        await db.close()
