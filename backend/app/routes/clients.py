@@ -1,7 +1,7 @@
 from typing import List
 from fastapi import APIRouter, HTTPException, Response
 from sqlalchemy import select
-from starlette.status import HTTP_204_NO_CONTENT, HTTP_404_NOT_FOUND
+from starlette.status import HTTP_204_NO_CONTENT, HTTP_401_UNAUTHORIZED, HTTP_404_NOT_FOUND
 from app import models, schemas
 from app.auth import get_current_user
 from app.database import get_db
@@ -64,6 +64,8 @@ async def delete_client(
 
 @router.get("/profile", response_model=schemas.ClientOut)
 async def get_profile(current_client: int = Depends(get_current_user)):
+    if current_client.typ != "client":
+        raise HTTPException(HTTP_401_UNAUTHORIZED, detail="you are not a client")
     if not current_client:
         raise HTTPException(HTTP_404_NOT_FOUND, detail="client doesn't exist")
     return current_client

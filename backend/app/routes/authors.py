@@ -1,6 +1,7 @@
 from typing import List
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
+from starlette.status import HTTP_401_UNAUTHORIZED
 from app import models, schemas
 from app.auth import get_current_user
 from app.database import get_db
@@ -61,6 +62,8 @@ async def get_authors(db: Session = Depends(get_db)):
 
 @router.get("/profile", response_model=schemas.AuthorOut)
 async def get_profile(current_author: int = Depends(get_current_user), db: Session = Depends(get_db)):
+    if current_author.typ != "author":
+        raise HTTPException(HTTP_401_UNAUTHORIZED, detail="you are not an author")
     author = await db.execute(
         select(models.Author)
         .where(models.Author.id == current_author.id)
