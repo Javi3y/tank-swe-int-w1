@@ -24,7 +24,6 @@ class TokenData(BaseModel):
 class UserBase(BaseModel):
     username: str
     email: EmailStr
-    phone_number: str
     name: str
     sur_name: str
 
@@ -32,19 +31,25 @@ class UserBase(BaseModel):
         from_attributes = True
 
 
-class UserCreate(UserBase):
+class ClientBase(UserBase):
+    pass
+
+
+class ClientCreate(ClientBase):
     password: str
+    phone_number: str
 
 
-class UserOut(UserBase):
+class ClientOut(ClientBase):
     id: int
+    balance: int
 
 
-class UserLogin(BaseModel):
+class ClientLogin(BaseModel):
     password: str
 
 
-class UserUpdate(BaseModel):
+class ClientUpdate(BaseModel):
     username: Union[str, None] = None
     password: Union[str, None] = None
 
@@ -53,21 +58,10 @@ class City(BaseModel):
     name: str
 
 
-class AuthorBase(UserBase):
-    city: int
+class AuthorBase(ClientBase):
+    city: City
     goodreads: str
-    bank_acount: str
-
-
-class AuthorCreate(AuthorBase):
-    id: int
-    password: str
 
 
 class AuthorOut(AuthorBase):
     id: int
-
-
-class AuthorUpdate(BaseModel):
-    username: Union[str, None] = None
-    password: Union[str, None] = None

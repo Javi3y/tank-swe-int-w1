@@ -90,6 +90,7 @@ class Book(Base):
     units = Column(Integer, nullable=False, default=0)
     description = Column(String, nullable=False)
 
+
 class BookAuthor(Base):
     __tablename__ = "book_author"
     author_id = Column(ForeignKey("author.id", ondelete="CASCADE"), nullable=False)
@@ -97,12 +98,14 @@ class BookAuthor(Base):
     book_id = Column(ForeignKey("book.id", ondelete="CASCADE"), nullable=False)
     book = relationship("Book")
 
+
 class BookGenre(Base):
     __tablename__ = "book_genre"
     gente_id = Column(ForeignKey("genre.id", ondelete="CASCADE"), nullable=False)
     author = relationship("Genre")
     book_id = Column(ForeignKey("book.id", ondelete="CASCADE"), nullable=False)
     book = relationship("Book")
+
 
 class Reservation(Base):
     __tablename__ = "reservation"
