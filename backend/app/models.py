@@ -95,12 +95,21 @@ class BookAuthor(Base):
     author_id = Column(ForeignKey("author.id", ondelete="CASCADE"), nullable=False)
     author = relationship("Author")
     book_id = Column(ForeignKey("book.id", ondelete="CASCADE"), nullable=False)
-    author = relationship("Book")
+    book = relationship("Book")
 
 class BookGenre(Base):
     __tablename__ = "book_genre"
     gente_id = Column(ForeignKey("genre.id", ondelete="CASCADE"), nullable=False)
     author = relationship("Genre")
     book_id = Column(ForeignKey("book.id", ondelete="CASCADE"), nullable=False)
-    author = relationship("Book")
+    book = relationship("Book")
 
+class Reservation(Base):
+    __tablename__ = "reservation"
+    client_id = Column(ForeignKey("client.id", ondelete="CASCADE"), nullable=False)
+    client = relationship("Client")
+    book_id = Column(ForeignKey("book.id", ondelete="CASCADE"), nullable=False)
+    book = relationship("Book")
+    start = Column("start", DateTime(), default=current_timestamp(), nullable=False)
+    end = Column("end", DateTime(), default=current_timestamp(), nullable=False)
+    price = Column(Integer, nullable=False)

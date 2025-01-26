@@ -6,9 +6,6 @@ from pydantic import (
 )
 from typing import Union
 
-from pydantic_core import Url
-
-
 # token
 
 
