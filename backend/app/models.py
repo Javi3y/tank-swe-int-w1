@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from .database import Base
-from sqlalchemy.orm import backref, mapped_column, relationship
-from sqlalchemy import Boolean, Column, ForeignKey, String, Enum, DateTime, Integer
+from sqlalchemy.orm import mapped_column, relationship
+from sqlalchemy import Column, ForeignKey, String, Enum, DateTime, Integer
 import enum
 from sqlalchemy_utils import EmailType, PasswordType, URLType
 
