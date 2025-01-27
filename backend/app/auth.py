@@ -6,9 +6,10 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 from starlette.status import HTTP_401_UNAUTHORIZED
 
-from . import schemas, models
+from . import schemas
 from .config import settings
 from .database import get_db
+from .models import users
 
 SECRET_KEY = settings.secret_key
 ALGORITHM = settings.algorithm
@@ -49,7 +50,7 @@ async def get_current_user(
     )
     user_token = await verify_access_token(token, credentials_exception)
     results = await db.execute(
-        select(models.User).where(models.User.id == user_token.id)
+        select(users.User).where(users.User.id == user_token.id)
     )
     return results.scalar()
 
@@ -63,9 +64,9 @@ async def login(
     db: Session = Depends(get_db),
 ):
     results = await db.execute(
-        select(models.User).where(
-            (models.User.username == user_credentials.username)
-            | (models.User.email == user_credentials.username)
+        select(users.User).where(
+            (users.User.username == user_credentials.username)
+            | (users.User.email == user_credentials.username)
         )
     )
     user = results.scalar()

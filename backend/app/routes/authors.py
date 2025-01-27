@@ -3,20 +3,21 @@ from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.status import HTTP_401_UNAUTHORIZED
-from app import models, schemas
+from app import schemas
 from app.auth import get_current_user
 from app.database import get_db
 from fastapi import Depends
 from sqlalchemy.orm import selectinload
+from app.models import users
 
 router = APIRouter(prefix="/authors", tags=["Authors"])
 
 
 # @router.post("/")
 # async def create_author(author: schemas.AuthorCreate, db: AsyncSession = Depends(get_db)):
-#    new_author = models.Author(**author.model_dump())
+#    new_author = users.Author(**author.model_dump())
 #    city = await db.execute(
-#        select(models.City).where(models.City.id == new_author.city)
+#        select(users.City).where(users.City.id == new_author.city)
 #    )
 #    new_author.city = city.scalar()
 #    db.add(new_author)
@@ -27,7 +28,7 @@ router = APIRouter(prefix="/authors", tags=["Authors"])
 
 @router.get("/", response_model=List[schemas.AuthorOut])
 async def get_authors(db: AsyncSession = Depends(get_db)):
-    authors = await db.execute(select(models.Author))
+    authors = await db.execute(select(users.Author))
     return authors.scalars().all()
 
 
@@ -51,7 +52,7 @@ async def get_authors(db: AsyncSession = Depends(get_db)):
 #
 # @router.delete("/")
 # async def delete_author(
-#    current_author: models.User = Depends(get_current_user),
+#    current_author: users.User = Depends(get_current_user),
 #    db: AsyncSession = Depends(get_db),
 # ):
 #    await db.delete(current_author)
@@ -63,11 +64,11 @@ async def get_authors(db: AsyncSession = Depends(get_db)):
 async def get_profile(
     current_author: int = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
-    if current_author.typ != models.Typ("author"):
+    if current_author.typ != users.Typ("author"):
         raise HTTPException(HTTP_401_UNAUTHORIZED, detail="you are not an author")
     author = await db.execute(
-        select(models.Author)
-        .where(models.Author.id == current_author.id)
-        .options(selectinload(models.Author.city))
+        select(users.Author)
+        .where(users.Author.id == current_author.id)
+        .options(selectinload(users.Author.city))
     )
     return author.scalar()

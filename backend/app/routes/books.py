@@ -7,17 +7,18 @@ from starlette.status import (
     HTTP_401_UNAUTHORIZED,
     HTTP_404_NOT_FOUND,
 )
-from app import models, schemas
+from app import schemas
 from app.auth import get_current_user
 from app.database import get_db
 from fastapi import Depends
+from app.models import users, books
 
 
 router = APIRouter(prefix="/books", tags=["Books"])
 
 
 async def check_admin(user):
-    if user.typ != models.Typ("admin") and user.typ != models.Typ("author"):
+    if user.typ != users.Typ("admin") and user.typ != users.Typ("author"):
         raise HTTPException(
             HTTP_401_UNAUTHORIZED,
             detail="user doesn't have the permisions for this operation",
@@ -31,7 +32,7 @@ async def create_book(
     db: AsyncSession = Depends(get_db),
 ):
     await check_admin(current_user)
-    new_book = models.Book(**book.model_dump())
+    new_book = books.Book(**book.model_dump())
     db.add(new_book)
     await db.commit()
     await db.refresh(new_book)
@@ -40,7 +41,7 @@ async def create_book(
 
 @router.get("/", response_model=List[schemas.BookOut])
 async def get_books(db: AsyncSession = Depends(get_db)):
-    books = await db.execute(select(models.Book))
+    books = await db.execute(select(books.Book))
     return books.scalars().all()
 
 
@@ -69,7 +70,7 @@ async def get_books(db: AsyncSession = Depends(get_db)):
 #
 # @router.delete("/")
 # async def delete_client(
-#    current_client: models.User = Depends(get_current_user),
+#    current_client: users.User = Depends(get_current_user),
 #    db: AsyncSession = Depends(get_db),
 # ):
 #    if not current_client:
@@ -82,7 +83,7 @@ async def get_books(db: AsyncSession = Depends(get_db)):
 #
 @router.get("/{id}", response_model=schemas.BookOut)
 async def get_book(id: int, db: AsyncSession = Depends(get_db)):
-    book = await db.execute(select(models.Book).where(models.Book.id == id))
+    book = await db.execute(select(books.Book).where(books.Book.id == id))
     book = book.scalar()
     if not book:
         raise HTTPException(HTTP_404_NOT_FOUND, detail="book not found")
@@ -94,7 +95,7 @@ async def get_authors(
     id: int,
     db: AsyncSession = Depends(get_db),
 ):
-    book = await db.execute(select(models.Book).where(models.Book.id == id))
+    book = await db.execute(select(books.Book).where(books.Book.id == id))
     book = book.scalar()
     if not book:
         raise HTTPException(HTTP_404_NOT_FOUND, detail="book not found")
@@ -110,16 +111,16 @@ async def add_author(
     db: AsyncSession = Depends(get_db),
 ):
     await check_admin(current_user)
-    book = await db.execute(select(models.Book).where(models.Book.id == id))
+    book = await db.execute(select(books.Book).where(books.Book.id == id))
     book = book.scalar()
     if not book:
         raise HTTPException(HTTP_404_NOT_FOUND, detail="book not found")
-    author = await db.execute(select(models.Author).where(models.Author.id == author))
+    author = await db.execute(select(users.Author).where(users.Author.id == author))
     author = author.scalar()
     if not author:
         raise HTTPException(HTTP_404_NOT_FOUND, detail="author not found")
 
-    new_book_author = models.BookAuthor(author_id=author.id, book_id=book.id)
+    new_book_author = users.BookAuthor(author_id=author.id, book_id=book.id)
     db.add(new_book_author)
     await db.commit()
     await db.refresh(new_book_author)
@@ -137,20 +138,20 @@ async def delete_author(
 ):
     await check_admin(current_user)
 
-    book = await db.execute(select(models.Book).where(models.Book.id == id))
+    book = await db.execute(select(books.Book).where(books.Book.id == id))
     book = book.scalar()
     if not book:
         raise HTTPException(HTTP_404_NOT_FOUND, detail="book not found")
     author = await db.execute(
-        select(models.Author).where(models.Author.id == author_id)
+        select(users.Author).where(users.Author.id == author_id)
     )
     author = author.scalar()
     if not author:
         raise HTTPException(HTTP_404_NOT_FOUND, detail="author not found")
     author_book = await db.execute(
-        select(models.BookAuthor)
-        .where(models.BookAuthor.book_id == book.id)
-        .where(models.BookAuthor.author_id == author.id)
+        select(books.BookAuthor)
+        .where(books.BookAuthor.book_id == book.id)
+        .where(books.BookAuthor.author_id == author.id)
     )
     author_book = author_book.scalar()
     await db.delete(author_book)
