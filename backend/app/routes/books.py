@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,10 +11,11 @@ from app import schemas
 from app.auth import get_current_user
 from app.database import get_db
 from fastapi import Depends
-from app.models import users, books
+from app.models import users
 from app.services.author import AuthorService, get_author_service
 from app.services.bookauthor import BookAuthorService, get_book_author_service
 from app.services.books import BookService, get_book_service
+from app.services.users import UserService, get_user_service
 
 
 router = APIRouter(prefix="/books", tags=["Books"])
@@ -28,20 +29,22 @@ async def check_admin(user):
         )
 
 
+@router.post("/{id}")
 @router.post("/")
 async def create_book(
     book: schemas.Book,
+    book_service: BookService = Depends(get_book_service),
     current_user: int = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    author_service: AuthorService = Depends(get_author_service),
+    book_author_service: BookAuthorService = Depends(get_book_author_service),
+    id: Optional[int] = None,
 ):
     await check_admin(current_user)
-    new_book = books.Book(**book.model_dump())
-    db.add(new_book)
-    await db.commit()
-    await db.refresh(new_book)
-    return {"book": new_book.title}
+    return await book_service.create_item(book, current_user, author_service, book_author_service, book_service, db, id)
 
 
+# Done
 @router.get("/", response_model=List[schemas.BookOut])
 async def get_books(
     book_service: BookService = Depends(get_book_service),
@@ -86,6 +89,7 @@ async def get_books(
 #    return Response(status_code=HTTP_204_NO_CONTENT)
 #
 #
+# Done
 @router.get("/{id}", response_model=schemas.BookOut)
 async def get_book(
     id: int,
@@ -95,7 +99,7 @@ async def get_book(
     return await book_service.get_item(id, db)
 
 
-#Done
+# Done
 @router.get("/{id}/authors", response_model=List[schemas.AuthorOut])
 async def get_authors(
     id: int,
