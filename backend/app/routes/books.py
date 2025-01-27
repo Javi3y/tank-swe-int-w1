@@ -126,26 +126,14 @@ async def add_author(
 @router.delete("/{id}/{author_id}")
 async def delete_author(
     id: int,
-    author_id: int,
+    author: int,
     current_user: int = Depends(get_current_user),
+    author_service: AuthorService = Depends(get_author_service),
+    book_service: BookService = Depends(get_book_service),
+    book_author_service: BookAuthorService = Depends(get_book_author_service),
     db: AsyncSession = Depends(get_db),
 ):
     await check_admin(current_user)
-
-    book = await db.execute(select(books.Book).where(books.Book.id == id))
-    book = book.scalar()
-    if not book:
-        raise HTTPException(HTTP_404_NOT_FOUND, detail="book not found")
-    author = await db.execute(select(users.Author).where(users.Author.id == author_id))
-    author = author.scalar()
-    if not author:
-        raise HTTPException(HTTP_404_NOT_FOUND, detail="author not found")
-    author_book = await db.execute(
-        select(books.BookAuthor)
-        .where(books.BookAuthor.book_id == book.id)
-        .where(books.BookAuthor.author_id == author.id)
+    return await book_author_service.delete_item(
+        author, id, book_service, author_service, db
     )
-    author_book = author_book.scalar()
-    await db.delete(author_book)
-    await db.commit()
-    return Response(status_code=HTTP_204_NO_CONTENT)
