@@ -47,3 +47,4 @@ class BookAuthorService:
 
 async def get_book_author_service() -> BookAuthorService:
     return BookAuthorService()
+
