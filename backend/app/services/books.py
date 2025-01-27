@@ -18,6 +18,10 @@ class BookService:
             raise HTTPException(HTTP_404_NOT_FOUND, detail="book not found")
         return book
 
+    async def get_authors(self, id: int, db: AsyncSession):
+        book = await self.get_item(id, db)
+        return book.authors
+
 
 async def get_book_service() -> BookService:
     return BookService()

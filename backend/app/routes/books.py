@@ -95,19 +95,17 @@ async def get_book(
     return await book_service.get_item(id, db)
 
 
+#Done
 @router.get("/{id}/authors", response_model=List[schemas.AuthorOut])
 async def get_authors(
     id: int,
     db: AsyncSession = Depends(get_db),
+    book_service: BookService = Depends(get_book_service),
 ):
-    book = await db.execute(select(books.Book).where(books.Book.id == id))
-    book = book.scalar()
-    if not book:
-        raise HTTPException(HTTP_404_NOT_FOUND, detail="book not found")
-
-    return book.authors
+    return await book_service.get_authors(id, db)
 
 
+# Done
 @router.post("/{id}/authors", response_model=schemas.BookAuthor)
 async def add_author(
     id: int,
@@ -123,6 +121,7 @@ async def add_author(
     )
 
 
+# Done
 @router.delete("/{id}/{author_id}")
 async def delete_author(
     id: int,
