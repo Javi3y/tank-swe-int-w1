@@ -1,7 +1,5 @@
-from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.status import HTTP_404_NOT_FOUND
 from app.models import users
 from app.schemas import UserOut
 from typing import List

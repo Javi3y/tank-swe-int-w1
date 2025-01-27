@@ -24,7 +24,7 @@ async def get_admin(
     admin_service: AdminService = Depends(get_admin_service),
 ):
     await check_admin(current_admin)
-    return  await admin_service.get_items(db) 
+    return await admin_service.get_items(db)
 
 
 @router.get("/profile", response_model=schemas.UserOut)
