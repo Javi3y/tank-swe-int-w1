@@ -6,6 +6,7 @@ from sqlalchemy_utils import EmailType, PasswordType, URLType
 
 from sqlalchemy.sql.functions import current_timestamp
 
+
 class Typ(enum.Enum):
     client = "client"
     author = "author"

@@ -5,12 +5,12 @@ from app.models import users
 from app.schemas import UserOut
 from typing import Annotated, List
 
+
 class UserService:
     async def get_items(self, db: AsyncSession) -> List[UserOut]:
         all_users = await db.execute(select(users.User))
         return all_users.scalars().all()
 
+
 async def get_user_service() -> UserService:
     return UserService()
-
-user_service_dependency = Annotated[UserService, Depends(get_user_service)]

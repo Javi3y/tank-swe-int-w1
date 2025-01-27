@@ -4,6 +4,7 @@ from sqlalchemy import Column, ForeignKey, String, DateTime, Integer
 
 from sqlalchemy.sql.functions import current_timestamp
 
+
 class Genre(Base):
     __tablename__ = "genre"
     name = Column(String, nullable=False, unique=True)

@@ -142,9 +142,7 @@ async def delete_author(
     book = book.scalar()
     if not book:
         raise HTTPException(HTTP_404_NOT_FOUND, detail="book not found")
-    author = await db.execute(
-        select(users.Author).where(users.Author.id == author_id)
-    )
+    author = await db.execute(select(users.Author).where(users.Author.id == author_id))
     author = author.scalar()
     if not author:
         raise HTTPException(HTTP_404_NOT_FOUND, detail="author not found")
