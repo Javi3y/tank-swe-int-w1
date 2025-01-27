@@ -7,10 +7,11 @@ from starlette.status import (
     HTTP_401_UNAUTHORIZED,
     HTTP_404_NOT_FOUND,
 )
-from app import models, schemas
+from app import schemas
 from app.auth import get_current_user
 from app.database import get_db
 from fastapi import Depends
+from app.models import users
 
 
 router = APIRouter(prefix="/clients", tags=["Clients"])
@@ -20,7 +21,7 @@ router = APIRouter(prefix="/clients", tags=["Clients"])
 async def create_client(
     client: schemas.ClientCreate, db: AsyncSession = Depends(get_db)
 ):
-    new_client = models.Client(**client.model_dump())
+    new_client = users.Client(**client.model_dump())
     new_client.typ = "client"
     db.add(new_client)
     await db.commit()
@@ -30,7 +31,7 @@ async def create_client(
 
 @router.get("/", response_model=List[schemas.ClientOut])
 async def get_client(db: AsyncSession = Depends(get_db)):
-    clients = await db.execute(select(models.Client))
+    clients = await db.execute(select(users.Client))
     return clients.scalars().all()
 
 
@@ -57,7 +58,7 @@ async def update_client(
 
 @router.delete("/")
 async def delete_client(
-    current_client: models.User = Depends(get_current_user),
+    current_client: users.User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     if not current_client:
