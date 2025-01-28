@@ -12,27 +12,28 @@ from app.auth import get_current_user
 from app.database import get_db
 from fastapi import Depends
 from app.models import users
+from app.services.clients import ClientService, get_client_service
 
 
 router = APIRouter(prefix="/clients", tags=["Clients"])
 
 
-@router.post("/")
+# Done
+@router.post("/", response_model=schemas.ClientOut)
 async def create_client(
-    client: schemas.ClientCreate, db: AsyncSession = Depends(get_db)
+    client: schemas.ClientCreate,
+    db: AsyncSession = Depends(get_db),
+    client_service: ClientService = Depends(get_client_service),
 ):
-    new_client = users.Client(**client.model_dump())
-    new_client.typ = "client"
-    db.add(new_client)
-    await db.commit()
-    await db.refresh(new_client)
-    return {"client": new_client.email}
+    return await client_service.create_item(client, db)
 
-
+# Done
 @router.get("/", response_model=List[schemas.ClientOut])
-async def get_client(db: AsyncSession = Depends(get_db)):
-    clients = await db.execute(select(users.Client))
-    return clients.scalars().all()
+async def get_client(
+    client_service: ClientService = Depends(get_client_service),
+    db: AsyncSession = Depends(get_db),
+):
+    return await client_service.get_items(db)
 
 
 @router.patch("/", response_model=schemas.ClientOut)

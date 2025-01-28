@@ -1,12 +1,12 @@
-from fastapi import Depends, HTTPException
+from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.status import HTTP_404_NOT_FOUND
-from app.models import books, users
+from app.models import books
 from app.schemas import BookOut
 from typing import List
-from app.services.author import AuthorService, get_author_service
-from app.services.books import BookService, get_book_service
+from app.services.author import AuthorService
+from app.services.books import BookService
 
 
 class BookAuthorService:
