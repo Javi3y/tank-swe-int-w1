@@ -36,7 +36,7 @@ async def get_client(
 ):
     return await client_service.get_items(db)
 
-
+#Done
 @router.patch("/", response_model=schemas.ClientOut)
 async def update_client(
     updated_client: schemas.ClientUpdate,
@@ -51,13 +51,12 @@ async def update_client(
 async def delete_client(
     current_client: users.User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    client_service: ClientService = Depends(get_client_service),
 ):
-
-    await db.delete(current_client)
-    await db.commit()
-    return Response(status_code=HTTP_204_NO_CONTENT)
+    return await client_service.delete_item(current_client, db)
 
 
+#Done
 @router.get("/profile", response_model=schemas.ClientOut)
 async def get_profile(
     client_service: ClientService = Depends(get_client_service),

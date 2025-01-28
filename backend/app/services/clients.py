@@ -1,7 +1,7 @@
-from fastapi import HTTPException
+from fastapi import HTTPException, Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.status import HTTP_404_NOT_FOUND
+from starlette.status import HTTP_204_NO_CONTENT, HTTP_404_NOT_FOUND
 from app.models import books, users
 from app.schemas import BookOut, ClientCreate, ClientOut, ClientUpdate
 from typing import List
@@ -46,6 +46,14 @@ class ClientService:
         await db.commit()
         await db.refresh(updated_client)
         return updated_client
+    async def delete_item(
+        self,
+        client: users.User,
+        db: AsyncSession,
+        ):
+        await db.delete(client)
+        await db.commit()
+        return Response(status_code=HTTP_204_NO_CONTENT)
 
 
 async def get_client_service() -> ClientService:
