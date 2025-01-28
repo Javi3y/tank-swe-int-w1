@@ -29,6 +29,7 @@ async def check_admin(user):
         )
 
 
+# Done
 @router.post("/{id}")
 @router.post("/")
 async def create_book(
@@ -76,19 +77,17 @@ async def get_books(
 #    return client
 #
 #
-# @router.delete("/")
-# async def delete_client(
-#    current_client: users.User = Depends(get_current_user),
-#    db: AsyncSession = Depends(get_db),
-# ):
-#    if not current_client:
-#        raise HTTPException(HTTP_404_NOT_FOUND, detail="client doesn't exist")
-#
-#    await db.delete(current_client)
-#    await db.commit()
-#    return Response(status_code=HTTP_204_NO_CONTENT)
-#
-#
+# Done
+@router.delete("/{id}")
+async def delete_client(
+   id: int,
+   current_user: users.User = Depends(get_current_user),
+   book_service: BookService = Depends(get_book_service),
+   db: AsyncSession = Depends(get_db),
+):
+    return await book_service.delete_item(current_user, id, db)
+
+
 # Done
 @router.get("/{id}", response_model=schemas.BookOut)
 async def get_book(
