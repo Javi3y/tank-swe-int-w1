@@ -40,21 +40,23 @@ async def get_client(
 async def update_client(
     updated_client: schemas.ClientUpdate,
     current_client: int = Depends(get_current_user),
+    client_service: ClientService = Depends(get_client_service),
     db: AsyncSession = Depends(get_db),
 ):
-    if not current_client:
-        raise HTTPException(HTTP_404_NOT_FOUND, detail="client does not exist")
+    return await client_service.update_item(updated_client, current_client, db)
+    #if not current_client:
+    #    raise HTTPException(HTTP_404_NOT_FOUND, detail="client does not exist")
 
-    client = current_client
+    #client = current_client
 
-    client_dict = updated_client.model_dump(exclude_none=True)
+    #client_dict = updated_client.model_dump(exclude_none=True)
 
-    for key, value in client_dict.items():
-        setattr(client, key, value)
+    #for key, value in client_dict.items():
+    #    setattr(client, key, value)
 
-    await db.commit()
-    await db.refresh(client)
-    return client
+    #await db.commit()
+    #await db.refresh(client)
+    #return client
 
 
 @router.delete("/")
