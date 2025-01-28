@@ -36,7 +36,8 @@ async def get_client(
 ):
     return await client_service.get_items(db)
 
-#Done
+
+# Done
 @router.patch("/", response_model=schemas.ClientOut)
 async def update_client(
     updated_client: schemas.ClientUpdate,
@@ -56,7 +57,7 @@ async def delete_client(
     return await client_service.delete_item(current_client, db)
 
 
-#Done
+# Done
 @router.get("/profile", response_model=schemas.ClientOut)
 async def get_profile(
     client_service: ClientService = Depends(get_client_service),

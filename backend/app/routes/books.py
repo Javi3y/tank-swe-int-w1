@@ -42,7 +42,9 @@ async def create_book(
     id: Optional[int] = None,
 ):
     await check_admin(current_user)
-    return await book_service.create_item(book, current_user, author_service, book_author_service, book_service, db, id)
+    return await book_service.create_item(
+        book, current_user, author_service, book_author_service, book_service, db, id
+    )
 
 
 # Done
@@ -80,10 +82,10 @@ async def get_books(
 # Done
 @router.delete("/{id}")
 async def delete_client(
-   id: int,
-   current_user: users.User = Depends(get_current_user),
-   book_service: BookService = Depends(get_book_service),
-   db: AsyncSession = Depends(get_db),
+    id: int,
+    current_user: users.User = Depends(get_current_user),
+    book_service: BookService = Depends(get_book_service),
+    db: AsyncSession = Depends(get_db),
 ):
     return await book_service.delete_item(current_user, id, db)
 

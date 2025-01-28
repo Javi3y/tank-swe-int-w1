@@ -46,11 +46,12 @@ class ClientService:
         await db.commit()
         await db.refresh(updated_client)
         return updated_client
+
     async def delete_item(
         self,
         client: users.User,
         db: AsyncSession,
-        ):
+    ):
         await db.delete(client)
         await db.commit()
         return Response(status_code=HTTP_204_NO_CONTENT)
