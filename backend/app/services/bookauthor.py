@@ -1,7 +1,8 @@
-from fastapi import HTTPException, Response
+from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.status import HTTP_204_NO_CONTENT, HTTP_404_NOT_FOUND
+from starlette.status import HTTP_404_NOT_FOUND
+
 from app.models import books
 from app.schemas import BookOut
 from typing import List

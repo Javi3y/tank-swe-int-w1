@@ -12,67 +12,55 @@ from app.auth import get_current_user
 from app.database import get_db
 from fastapi import Depends
 from app.models import users
+from app.services.clients import ClientService, get_client_service
 
 
 router = APIRouter(prefix="/clients", tags=["Clients"])
 
 
-@router.post("/")
+# Done
+@router.post("/", response_model=schemas.ClientOut)
 async def create_client(
-    client: schemas.ClientCreate, db: AsyncSession = Depends(get_db)
+    client: schemas.ClientCreate,
+    db: AsyncSession = Depends(get_db),
+    client_service: ClientService = Depends(get_client_service),
 ):
-    new_client = users.Client(**client.model_dump())
-    new_client.typ = "client"
-    db.add(new_client)
-    await db.commit()
-    await db.refresh(new_client)
-    return {"client": new_client.email}
+    return await client_service.create_item(client, db)
 
 
+# Done
 @router.get("/", response_model=List[schemas.ClientOut])
-async def get_client(db: AsyncSession = Depends(get_db)):
-    clients = await db.execute(select(users.Client))
-    return clients.scalars().all()
+async def get_client(
+    client_service: ClientService = Depends(get_client_service),
+    db: AsyncSession = Depends(get_db),
+):
+    return await client_service.get_items(db)
 
-
+#Done
 @router.patch("/", response_model=schemas.ClientOut)
 async def update_client(
     updated_client: schemas.ClientUpdate,
     current_client: int = Depends(get_current_user),
+    client_service: ClientService = Depends(get_client_service),
     db: AsyncSession = Depends(get_db),
 ):
-    if not current_client:
-        raise HTTPException(HTTP_404_NOT_FOUND, detail="client does not exist")
-
-    client = current_client
-
-    client_dict = updated_client.model_dump(exclude_none=True)
-
-    for key, value in client_dict.items():
-        setattr(client, key, value)
-
-    await db.commit()
-    await db.refresh(client)
-    return client
+    return await client_service.update_item(updated_client, current_client, db)
 
 
 @router.delete("/")
 async def delete_client(
     current_client: users.User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    client_service: ClientService = Depends(get_client_service),
 ):
-    if not current_client:
-        raise HTTPException(HTTP_404_NOT_FOUND, detail="client doesn't exist")
-
-    await db.delete(current_client)
-    await db.commit()
-    return Response(status_code=HTTP_204_NO_CONTENT)
+    return await client_service.delete_item(current_client, db)
 
 
+#Done
 @router.get("/profile", response_model=schemas.ClientOut)
-async def get_profile(current_client: int = Depends(get_current_user)):
-    if current_client.typ != "client":
-        raise HTTPException(HTTP_401_UNAUTHORIZED, detail="you are not a client")
-    if not current_client:
-        raise HTTPException(HTTP_404_NOT_FOUND, detail="client doesn't exist")
-    return current_client
+async def get_profile(
+    client_service: ClientService = Depends(get_client_service),
+    current_client: int = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    return await client_service.get_item(current_client, db)
