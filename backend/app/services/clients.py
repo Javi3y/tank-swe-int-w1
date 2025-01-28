@@ -14,14 +14,12 @@ class ClientService:
         all_clients = await db.execute(select(users.Client))
         return all_clients.scalars().all()
 
-    # async def get_item(self, id: int, db: AsyncSession) -> BookOut:
-    #    book_author = await db.execute(
-    #        select(books.BookAuthor).where(books.Book.id == id)
-    #    )
-    #    book_author = book_author.scalar()
-    #    if not book_author:
-    #        raise HTTPException(HTTP_404_NOT_FOUND, detail="book_author not found")
-    #    return book_author
+    async def get_item(self, id: int, db: AsyncSession) -> ClientOut:
+        client = await db.execute(select(users.Client).where(users.Client.id == id.id))
+        client = client.scalar()
+        if not client:
+            raise HTTPException(HTTP_404_NOT_FOUND, detail="client not found")
+        return client
 
     async def create_item(
         self,
@@ -36,11 +34,8 @@ class ClientService:
         return new_client
 
     async def update_item(
-        self,
-        client: ClientUpdate,
-        current_client:int,
-        db:AsyncSession
-            ):
+        self, client: ClientUpdate, current_client: int, db: AsyncSession
+    ):
 
         updated_client = current_client
         client_dict = client.model_dump(exclude_none=True)
@@ -51,7 +46,6 @@ class ClientService:
         await db.commit()
         await db.refresh(updated_client)
         return updated_client
-
 
 
 async def get_client_service() -> ClientService:

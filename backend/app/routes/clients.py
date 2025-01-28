@@ -27,6 +27,7 @@ async def create_client(
 ):
     return await client_service.create_item(client, db)
 
+
 # Done
 @router.get("/", response_model=List[schemas.ClientOut])
 async def get_client(
@@ -44,19 +45,6 @@ async def update_client(
     db: AsyncSession = Depends(get_db),
 ):
     return await client_service.update_item(updated_client, current_client, db)
-    #if not current_client:
-    #    raise HTTPException(HTTP_404_NOT_FOUND, detail="client does not exist")
-
-    #client = current_client
-
-    #client_dict = updated_client.model_dump(exclude_none=True)
-
-    #for key, value in client_dict.items():
-    #    setattr(client, key, value)
-
-    #await db.commit()
-    #await db.refresh(client)
-    #return client
 
 
 @router.delete("/")
@@ -64,8 +52,6 @@ async def delete_client(
     current_client: users.User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    if not current_client:
-        raise HTTPException(HTTP_404_NOT_FOUND, detail="client doesn't exist")
 
     await db.delete(current_client)
     await db.commit()
@@ -73,9 +59,9 @@ async def delete_client(
 
 
 @router.get("/profile", response_model=schemas.ClientOut)
-async def get_profile(current_client: int = Depends(get_current_user)):
-    if current_client.typ != "client":
-        raise HTTPException(HTTP_401_UNAUTHORIZED, detail="you are not a client")
-    if not current_client:
-        raise HTTPException(HTTP_404_NOT_FOUND, detail="client doesn't exist")
-    return current_client
+async def get_profile(
+    client_service: ClientService = Depends(get_client_service),
+    current_client: int = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    return await client_service.get_item(current_client, db)
