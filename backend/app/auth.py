@@ -49,9 +49,7 @@ async def get_current_user(
         headers={"www-Authenticate": "Bearer"},
     )
     user_token = await verify_access_token(token, credentials_exception)
-    results = await db.execute(
-        select(users.User).where(users.User.id == user_token.id)
-    )
+    results = await db.execute(select(users.User).where(users.User.id == user_token.id))
     return results.scalar()
 
 

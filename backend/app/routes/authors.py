@@ -2,13 +2,12 @@ from typing import List
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.status import HTTP_401_UNAUTHORIZED
+from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_404_NOT_FOUND
 from app import schemas
 from app.auth import get_current_user
 from app.database import get_db
 from fastapi import Depends
-from sqlalchemy.orm import selectinload
-from app.models import users
+from app.services.author import get_author_service, AuthorService
 
 router = APIRouter(prefix="/authors", tags=["Authors"])
 
@@ -27,9 +26,11 @@ router = APIRouter(prefix="/authors", tags=["Authors"])
 
 
 @router.get("/", response_model=List[schemas.AuthorOut])
-async def get_authors(db: AsyncSession = Depends(get_db)):
-    authors = await db.execute(select(users.Author))
-    return authors.scalars().all()
+async def get_authors(
+    author_service: AuthorService = Depends(get_author_service),
+    db: AsyncSession = Depends(get_db),
+):
+    return await author_service.get_items(db)
 
 
 # @router.patch("/", response_model=schemas.AuthorOut)
@@ -62,13 +63,8 @@ async def get_authors(db: AsyncSession = Depends(get_db)):
 
 @router.get("/profile", response_model=schemas.AuthorOut)
 async def get_profile(
-    current_author: int = Depends(get_current_user), db: AsyncSession = Depends(get_db)
+    current_author: int = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    author_service: AuthorService = Depends(get_author_service),
 ):
-    if current_author.typ != users.Typ("author"):
-        raise HTTPException(HTTP_401_UNAUTHORIZED, detail="you are not an author")
-    author = await db.execute(
-        select(users.Author)
-        .where(users.Author.id == current_author.id)
-        .options(selectinload(users.Author.city))
-    )
-    return author.scalar()
+    return await author_service.get_item(current_author.id, db)

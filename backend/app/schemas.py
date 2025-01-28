@@ -60,6 +60,9 @@ class ClientLogin(BaseModel):
 class ClientUpdate(BaseModel):
     username: Union[str, None] = None
     password: Union[str, None] = None
+    name: Union[str, None] = None
+    sur_name: Union[str, None] = None
+    phone_number: Union[str, None] = None
 
 
 class City(BaseModel):
@@ -86,3 +89,9 @@ class Book(BaseModel):
 class BookOut(Book):
     id: int
     authors: List[AuthorOut]
+
+
+class BookAuthor(BaseModel):
+    id: int
+    author_id: int
+    book_id: int

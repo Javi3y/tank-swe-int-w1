@@ -4,6 +4,7 @@ from sqlalchemy import Column, ForeignKey, String, DateTime, Integer
 
 from sqlalchemy.sql.functions import current_timestamp
 
+
 class Genre(Base):
     __tablename__ = "genre"
     name = Column(String, nullable=False, unique=True)
@@ -25,9 +26,7 @@ class Book(Base):
 class BookAuthor(Base):
     __tablename__ = "book_author"
     author_id = Column(ForeignKey("author.id", ondelete="CASCADE"), nullable=False)
-    author = relationship("Author")
     book_id = Column(ForeignKey("book.id", ondelete="CASCADE"), nullable=False)
-    book = relationship("Book")
 
 
 class BookGenre(Base):
