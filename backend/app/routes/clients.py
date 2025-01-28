@@ -13,6 +13,7 @@ from app.database import get_db
 from fastapi import Depends
 from app.models import users
 from app.services.clients import ClientService, get_client_service
+from app.services.purchase import PurchaseService, get_purchase_service
 
 
 router = APIRouter(prefix="/clients", tags=["Clients"])
@@ -65,3 +66,17 @@ async def get_profile(
     db: AsyncSession = Depends(get_db),
 ):
     return await client_service.get_item(current_client, db)
+
+
+# I know that this isn't the right place will fix later! :D
+@router.post("/subscribe")
+async def subscribe(
+    current_client: users.User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    purchase_service: PurchaseService = Depends(get_purchase_service),
+    client_service: ClientService = Depends(get_client_service),
+):
+    sub = await purchase_service.purchase_subscription(
+        current_client, "plus", client_service, db
+    )
+    return {"sub": sub}
