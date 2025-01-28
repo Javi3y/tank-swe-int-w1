@@ -87,8 +87,8 @@ class BookOut(Book):
     id: int
     authors: List[AuthorOut]
 
-class BookAuthor(BaseModel):
-    id:int
-    author_id:int
-    book_id:int
 
+class BookAuthor(BaseModel):
+    id: int
+    author_id: int
+    book_id: int
