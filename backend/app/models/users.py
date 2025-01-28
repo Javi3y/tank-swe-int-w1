@@ -84,5 +84,5 @@ class Subscription(Base):
     client_id = Column(ForeignKey("client.id", ondelete="CASCADE"), nullable=False)
     client = relationship("Client")
     subscription_model = Column(Enum(SubscriptionEnum), nullable=False)
-    start = Column("start", DateTime(), default=current_timestamp(), nullable=False)
-    end = Column("end", DateTime(), nullable=False)
+    start = Column("start", DateTime(timezone=True), default=current_timestamp(), nullable=False)
+    end = Column("end", DateTime(timezone=True), nullable=False)
