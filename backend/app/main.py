@@ -15,7 +15,7 @@ async def lifespan(app: FastAPI):
     db_generator = get_db()
     db = await anext(db_generator)
     try:
-        await db.execute(text("CREATE EXTENSION IF NOT EXISTS btree_gist;"))
+        await db.execute(text("create extension if not exists btree_gist;"))
         await db.commit()
         yield
     finally:

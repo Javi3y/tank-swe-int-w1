@@ -3,7 +3,6 @@ from sqlalchemy_utils.types.range import TSRANGE
 from app.database import Base
 from sqlalchemy.orm import mapped_column, relationship
 from sqlalchemy import (
-    DDL,
     Column,
     ForeignKey,
     String,
@@ -31,6 +30,10 @@ class User(Base):
     username = Column(String, nullable=False, unique=True)
     name = Column(String, nullable=False)
     sur_name = Column(String, nullable=False)
+    token_expire = Column(
+        "token_expire",
+        DateTime(timezone=True),
+    )
     password = Column(
         PasswordType(schemes=["pbkdf2_sha512", "md5_crypt"], deprecated=["md5_crypt"]),
         nullable=False,
