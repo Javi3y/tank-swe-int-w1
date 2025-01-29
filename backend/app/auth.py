@@ -98,3 +98,7 @@ async def login(
 
 
     return {"access_token": access_token, "token_type": "bearer"}
+
+#@router.post("/opt")
+#async def verify_otp(user_credentials: schemas.Auth,otp:int, db: AsyncSession):
+#    pass
