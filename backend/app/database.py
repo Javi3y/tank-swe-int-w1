@@ -25,13 +25,16 @@ async def get_db():
         yield db
 
 
-
 class Redis:
-    redis_client: redis.Redis| None = None
+    redis_client: redis.Redis | None = None
 
     @classmethod
     async def connect(
-        cls, host: str = settings.redis_host, port: int = settings.redis_port, username=settings.redis_username, password=settings.redis_password
+        cls,
+        host: str = settings.redis_host,
+        port: int = settings.redis_port,
+        username=settings.redis_username,
+        password=settings.redis_password,
     ):
         try:
             cls.redis_client = redis.Redis(
@@ -49,7 +52,9 @@ class Redis:
             await cls.redis_client.aclose()
 
     @classmethod
-    async def insert_string(cls, key: str, value: str, expiry_seconds: int|None = None):
+    async def insert_string(
+        cls, key: str, value: str, expiry_seconds: int | None = None
+    ):
         if expiry_seconds:
             await cls.redis_client.setex(key, expiry_seconds, value)
         else:
@@ -60,5 +65,10 @@ class Redis:
         value = await cls.redis_client.get(key)
         if value == None:
             return None
-        value = value.decode('utf-8')
+        value = value.decode("utf-8")
         return value
+
+
+async def run_redis():
+    await Redis.connect()
+    return Redis

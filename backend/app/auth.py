@@ -1,9 +1,10 @@
 from datetime import datetime, timedelta, UTC
-from fastapi import APIRouter, Depends, HTTPException, Header, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Header, Request, Response, status
 from jose import JWTError, jwt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.status import HTTP_401_UNAUTHORIZED
+from random import randint
 
 from . import schemas
 from .config import settings
@@ -46,11 +47,7 @@ async def verify_access_token(token: str, credentials_exception):
     return token_data
 
 
-
-async def get_current_user(
-    request: Request,
-    db: AsyncSession = Depends(get_db)
-):
+async def get_current_user(request: Request, db: AsyncSession = Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail=f"Could not validate credentials",
@@ -74,11 +71,7 @@ async def get_current_user(
 router = APIRouter(prefix="/login", tags=["login"])
 
 
-@router.post("/")
-async def login(
-    user_credentials: schemas.Auth,
-    db: AsyncSession = Depends(get_db),
-):
+async def check_user(user_credentials: schemas.Auth, db: AsyncSession):
     results = await db.execute(
         select(users.User).where(
             (users.User.username == user_credentials.username)
@@ -90,15 +83,44 @@ async def login(
         raise HTTPException(
             status_code=HTTP_401_UNAUTHORIZED, detail="invalid credentails"
         )
+    return user
+
+
+@router.post("/")
+async def login(
+    request: Request,
+    user_credentials: schemas.Auth,
+    db: AsyncSession = Depends(get_db),
+):
+    user = await check_user(user_credentials, db)
+    otp = str(randint(100000, 999999))
+    await request.app.state.n_client.insert_string(
+        user.id, otp, expiry_seconds=120
+    )
+    print(otp)
+    return {"msg": "enter the otp code in /login/otp"}
+
+
+
+@router.post("/opt")
+async def verify_otp(
+    request: Request,
+    user_credentials: schemas.Auth,
+    otp: int,
+    db: AsyncSession = Depends(get_db)
+):
+    user = await check_user(user_credentials, db)
+    key = await request.app.state.n_client.query_key(user.id)
+
+    if str(otp) != key:
+        raise HTTPException(
+            status_code=HTTP_401_UNAUTHORIZED, detail="invalid credentails"
+        )
+
     access_token, expire = await create_access_token(data={"user_id": user.id})
     user.token_expire = expire
 
     await db.commit()
     await db.refresh(user)
 
-
     return {"access_token": access_token, "token_type": "bearer"}
-
-#@router.post("/opt")
-#async def verify_otp(user_credentials: schemas.Auth,otp:int, db: AsyncSession):
-#    pass

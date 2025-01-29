@@ -96,6 +96,7 @@ class BookAuthor(BaseModel):
     author_id: int
     book_id: int
 
+
 class Auth(BaseModel):
     username: str
     password: str

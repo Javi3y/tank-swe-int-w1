@@ -26,19 +26,23 @@ class PurchaseService:
         await db.refresh(client)
         return await self.create_subscription(client, typ, db)
 
-    async def create_subscription(self, client, typ ,db: AsyncSession):
-        sub = await db.execute(select(users.Subscription).where(users.Subscription.client_id == client.id).order_by(users.Subscription.sub_end.desc()))
+    async def create_subscription(self, client, typ, db: AsyncSession):
+        sub = await db.execute(
+            select(users.Subscription)
+            .where(users.Subscription.client_id == client.id)
+            .order_by(users.Subscription.sub_end.desc())
+        )
         sub = sub.scalar()
         if not sub:
             date = datetime.now(UTC)
         else:
             date = sub.sub_end if sub.sub_end > datetime.now(UTC) else datetime.now(UTC)
-        
+
         subscription = users.Subscription(
-            client = client,
-            subscription_model = typ,
-            sub_start = date,
-            sub_end = date + timedelta(days=30),
+            client=client,
+            subscription_model=typ,
+            sub_start=date,
+            sub_end=date + timedelta(days=30),
         )
         db.add(subscription)
         await db.commit()

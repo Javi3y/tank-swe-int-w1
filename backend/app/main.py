@@ -7,7 +7,7 @@ from sqlalchemy import text
 from .routes import clients, authors, users, admin, books
 from . import auth
 
-from app.database import get_db
+from app.database import get_db, run_redis
 
 
 @asynccontextmanager
@@ -15,11 +15,13 @@ async def lifespan(app: FastAPI):
     db_generator = get_db()
     db = await anext(db_generator)
     try:
+        app.state.n_client = await run_redis()
         await db.execute(text("create extension if not exists btree_gist;"))
         await db.commit()
         yield
     finally:
         await db.close()
+        await app.state.n_client.close()
 
 
 app = FastAPI(lifespan=lifespan)
