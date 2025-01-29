@@ -4,6 +4,7 @@ from sqlalchemy import Boolean, Column, ForeignKey, DateTime, Integer, text
 
 from sqlalchemy.sql.functions import current_timestamp
 
+
 class Reservation(Base):
     __tablename__ = "reservation"
     client_id = Column(ForeignKey("client.id", ondelete="CASCADE"), nullable=False)

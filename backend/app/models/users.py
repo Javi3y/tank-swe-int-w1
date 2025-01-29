@@ -1,6 +1,18 @@
+from sqlalchemy.dialects.postgresql import ExcludeConstraint
+from sqlalchemy_utils.types.range import TSRANGE
 from app.database import Base
 from sqlalchemy.orm import mapped_column, relationship
-from sqlalchemy import Column, ForeignKey, String, Enum, DateTime, Integer
+from sqlalchemy import (
+    DDL,
+    Column,
+    ForeignKey,
+    String,
+    Enum,
+    DateTime,
+    Integer,
+    cast,
+    func,
+)
 import enum
 from sqlalchemy_utils import EmailType, PasswordType, URLType
 
@@ -84,5 +96,19 @@ class Subscription(Base):
     client_id = Column(ForeignKey("client.id", ondelete="CASCADE"), nullable=False)
     client = relationship("Client")
     subscription_model = Column(Enum(SubscriptionEnum), nullable=False)
-    start = Column("start", DateTime(timezone=True), default=current_timestamp(), nullable=False)
-    end = Column("end", DateTime(timezone=True), nullable=False)
+    sub_start = Column(
+        "sub_start",
+        DateTime(timezone=True),
+        default=current_timestamp(),
+        nullable=False,
+    )
+    sub_end = Column("sub_end", DateTime(timezone=True), nullable=False)
+    # Add exclusion constraint for overlapping time ranges
+    __table_args__ = (
+        ExcludeConstraint(
+            ("client_id", "="),
+            (cast(func.tsrange(sub_start, sub_end, "[]"), TSRANGE), "&&"),
+            using="gist",
+            name="no_overlapping_subscriptions",
+        ),
+    )

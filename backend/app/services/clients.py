@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from fastapi import HTTPException, Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -53,6 +54,16 @@ class ClientService:
         await db.delete(client)
         await db.commit()
         return Response(status_code=HTTP_204_NO_CONTENT)
+
+    async def get_subscription(self, id, db):
+        sub = await db.execute(
+            select(users.Subscription)
+            .where(users.Subscription.client_id == id.id)
+            .where(users.Subscription.sub_start < datetime.now(UTC))
+            .where(users.Subscription.sub_end > datetime.now(UTC))
+        )
+        sub = sub.scalar()
+        return sub
 
 
 async def get_client_service() -> ClientService:

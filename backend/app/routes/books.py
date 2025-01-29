@@ -1,11 +1,8 @@
 from typing import List, Optional
-from fastapi import APIRouter, HTTPException, Response
-from sqlalchemy import select
+from fastapi import APIRouter, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.status import (
-    HTTP_204_NO_CONTENT,
     HTTP_401_UNAUTHORIZED,
-    HTTP_404_NOT_FOUND,
 )
 from app import schemas
 from app.auth import get_current_user

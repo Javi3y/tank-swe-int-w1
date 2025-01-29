@@ -80,3 +80,12 @@ async def subscribe(
         current_client, "plus", client_service, db
     )
     return {"sub": sub}
+
+
+@router.get("/subscription")
+async def subscription(
+    current_client: users.User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    client_service: ClientService = Depends(get_client_service),
+):
+    return await client_service.get_subscription(current_client, db)

@@ -3,7 +3,6 @@ from sqlalchemy.orm import relationship
 from sqlalchemy import Column, ForeignKey, String, Integer
 
 
-
 class Genre(Base):
     __tablename__ = "genre"
     name = Column(String, nullable=False, unique=True)
@@ -34,5 +33,3 @@ class BookGenre(Base):
     genre = relationship("Genre")
     book_id = Column(ForeignKey("book.id", ondelete="CASCADE"), nullable=False)
     book = relationship("Book")
-
-
