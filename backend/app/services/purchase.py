@@ -9,7 +9,7 @@ from starlette.status import (
     HTTP_403_FORBIDDEN,
 )
 
-from app.models import purchase, users
+from app.models import books, purchase, users
 from app.services.clients import ClientService
 
 
@@ -65,14 +65,13 @@ class PurchaseService:
             )
         prev_reservations = await self.get_reservations(client.id, db)
         await self.can_reserve(sub.typ.value, prev_reservations)
-        # plus
-        if sub.subscription_model.value == 2:
-            print(2)
-        # premium
-        elif sub.subscription_model.value == 3:
-            print(3)
-        else:
-            raise HTTPException(HTTP_400_BAD_REQUEST)
+        can_reserve = self.can_reserve(book_id, db)
+        if can_reserve:
+            #reserve
+            pass
+        else :
+            #add in queue
+            pass
         return
 
     async def get_reservations(self, client_id, db: AsyncSession):
@@ -95,6 +94,11 @@ class PurchaseService:
                 raise HTTPException(
                     HTTP_403_FORBIDDEN, detail="you can't reserve any more books"
                 )
+
+    async def can_reserve(self, book, db):
+        book = await db.execute(select(books.Book).where(books.Book_id==book))
+        return True if book.scalar().units > 0 else False
+            
 
 
 async def get_purchase_service() -> PurchaseService:
