@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
-from .routes import clients, authors, users, admin, books
+from .routes import clients, authors, users, admin, books, purchase
 from . import auth
 
 from app.database import get_db, run_redis
@@ -42,3 +42,4 @@ app.include_router(clients.router)
 app.include_router(authors.router)
 app.include_router(admin.router)
 app.include_router(users.router)
+app.include_router(purchase.router)

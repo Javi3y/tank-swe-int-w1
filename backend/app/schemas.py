@@ -100,3 +100,7 @@ class BookAuthor(BaseModel):
 class Auth(BaseModel):
     username: str
     password: str
+
+
+class ReservationIn(BaseModel):
+    book_id: int

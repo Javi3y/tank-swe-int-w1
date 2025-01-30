@@ -2,9 +2,14 @@ from datetime import UTC, datetime, timedelta
 from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.status import HTTP_400_BAD_REQUEST, HTTP_402_PAYMENT_REQUIRED
+from starlette.status import (
+    HTTP_400_BAD_REQUEST,
+    HTTP_401_UNAUTHORIZED,
+    HTTP_402_PAYMENT_REQUIRED,
+    HTTP_403_FORBIDDEN,
+)
 
-from app.models import users
+from app.models import purchase, users
 from app.services.clients import ClientService
 
 
@@ -48,6 +53,48 @@ class PurchaseService:
         await db.commit()
         await db.refresh(subscription)
         return subscription
+
+    async def reserve(
+        self, client_id, book_id, client_service: ClientService, db: AsyncSession
+    ):
+        client = await client_service.get_item(client_id, db)
+        sub = await client_service.get_subscription(client_id, db)
+        if not sub:
+            raise HTTPException(
+                HTTP_403_FORBIDDEN, detail="user must have atleast a plus subscription"
+            )
+        prev_reservations = await self.get_reservations(client.id, db)
+        await self.can_reserve(sub.typ.value, prev_reservations)
+        # plus
+        if sub.subscription_model.value == 2:
+            print(2)
+        # premium
+        elif sub.subscription_model.value == 3:
+            print(3)
+        else:
+            raise HTTPException(HTTP_400_BAD_REQUEST)
+        return
+
+    async def get_reservations(self, client_id, db: AsyncSession):
+        reservations = await db.execute(
+            select(purchase.Reservation).where(
+                purchase.Reservation.client_id == client_id
+            )
+        )
+        return reservations
+
+    async def can_reserve(self, typ, reservations):
+        reservations_count = len(reservations.all())
+        if typ == 2:
+            if reservations_count >= 5:
+                raise HTTPException(
+                    HTTP_403_FORBIDDEN, detail="you can't reserve any more books"
+                )
+        if typ == 3:
+            if reservations_count >= 10:
+                raise HTTPException(
+                    HTTP_403_FORBIDDEN, detail="you can't reserve any more books"
+                )
 
 
 async def get_purchase_service() -> PurchaseService:

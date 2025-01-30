@@ -13,10 +13,13 @@ class Reservation(Base):
     book = relationship("Book")
     start = Column("start", DateTime(), default=current_timestamp(), nullable=False)
     end = Column("end", DateTime(), default=current_timestamp(), nullable=False)
-    is_ended = Column("is_ended", Boolean(), server_default=text('flase'), nullable=False)
+    is_ended = Column(
+        "is_ended", Boolean(), server_default=text("false"), nullable=False
+    )
+
 
 class ReservationQueue(Base):
-    __tablename__= "reservation_queue"
+    __tablename__ = "reservation_queue"
     client_id = Column(ForeignKey("client.id", ondelete="CASCADE"), nullable=False)
     client = relationship("Client")
     book_id = Column(ForeignKey("book.id", ondelete="CASCADE"), nullable=False)

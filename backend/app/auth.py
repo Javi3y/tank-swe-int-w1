@@ -94,12 +94,9 @@ async def login(
 ):
     user = await check_user(user_credentials, db)
     otp = str(randint(100000, 999999))
-    await request.app.state.n_client.insert_string(
-        user.id, otp, expiry_seconds=120
-    )
+    await request.app.state.n_client.insert_string(user.id, otp, expiry_seconds=120)
     print(otp)
     return {"msg": "enter the otp code in /login/otp"}
-
 
 
 @router.post("/opt")
@@ -107,7 +104,7 @@ async def verify_otp(
     request: Request,
     user_credentials: schemas.Auth,
     otp: int,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     user = await check_user(user_credentials, db)
     key = await request.app.state.n_client.query_key(user.id)

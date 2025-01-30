@@ -56,14 +56,8 @@ class ClientService:
         return Response(status_code=HTTP_204_NO_CONTENT)
 
     async def get_subscription(self, id, db):
-        sub = await db.execute(
-            select(users.Subscription)
-            .where(users.Subscription.client_id == id.id)
-            .where(users.Subscription.sub_start < datetime.now(UTC))
-            .where(users.Subscription.sub_end > datetime.now(UTC))
-        )
-        sub = sub.scalar()
-        return sub
+        client = await self.get_item(id, db)
+        return client.current_subscription
 
 
 async def get_client_service() -> ClientService:

@@ -1,4 +1,6 @@
+from datetime import UTC, datetime
 from sqlalchemy.dialects.postgresql import ExcludeConstraint
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy_utils.types.range import TSRANGE
 from app.database import Base
 from sqlalchemy.orm import mapped_column, relationship
@@ -92,6 +94,18 @@ class Client(User):
     __mapper_args__ = {
         "polymorphic_identity": Typ("client"),
     }
+    subscriptions = relationship(
+        "Subscription", back_populates="client", lazy="selectin"
+    )
+
+    @hybrid_property
+    def current_subscription(self):
+        """Returns the most recent valid subscription if available."""
+        now = datetime.now(UTC)
+        active_subs = [
+            sub for sub in self.subscriptions if sub.sub_start <= now <= sub.sub_end
+        ]
+        return max(active_subs, key=lambda sub: sub.sub_end, default=None)
 
 
 class Subscription(Base):
