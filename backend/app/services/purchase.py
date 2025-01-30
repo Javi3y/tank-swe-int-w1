@@ -71,9 +71,7 @@ class PurchaseService:
         if can_reserve:
             return await self.create_reservation(book_id, client.id, db)
         else :
-            #add in queue
-            pass
-        return
+            return await self.create_reservation_queue(book_id, client.id, db)
 
     async def get_reservations(self, client_id, db: AsyncSession):
         reservations = await db.execute(
@@ -81,7 +79,7 @@ class PurchaseService:
                 purchase.Reservation.client_id == client_id
             )
         )
-        return reservations
+        return reservations.scalars()
 
     async def can_reserve(self, typ, reservations):
         reservations_count = len(reservations.all())
@@ -108,9 +106,20 @@ class PurchaseService:
         db.add(new_reservation)
         await db.commit()
         await db.refresh(new_reservation)
+        book_unit = await db.execute(select(books.Book).where(books.Book.id == book))
+        book_unit = book_unit.scalar()
+        book_unit.units -= 1
+        await db.commit()
+        await db.refresh(book_unit)
+        await db.refresh(new_reservation)
         return new_reservation
             
-
+    async def create_reservation_queue(self, book,client, db):
+        new_reservation_queue = purchase.ReservationQueue(book_id = book, client_id = client)
+        db.add(new_reservation_queue)
+        await db.commit()
+        await db.refresh(new_reservation_queue)
+        return new_reservation_queue
 
 async def get_purchase_service() -> PurchaseService:
     return PurchaseService()

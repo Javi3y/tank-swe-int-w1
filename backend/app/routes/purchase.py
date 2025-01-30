@@ -14,7 +14,7 @@ router = APIRouter(prefix="/purchase", tags=["Purchases"])
 
 
 # Done
-@router.post("/")
+@router.post("/",response_model=schemas.ReservationOut)
 async def reserve(
     reservation: schemas.ReservationIn,
     current_client: users.User = Depends(get_current_user),
@@ -22,9 +22,10 @@ async def reserve(
     client_service: ClientService = Depends(get_client_service),
     purchase_service: PurchaseService = Depends(get_purchase_service),
 ):
-    return await purchase_service.reserve(
+    new_reservation = await purchase_service.reserve(
         current_client, reservation.book_id, client_service, db
     )
+    return new_reservation
 
 
 ## I know that this isn't the right place will fix later! :D
