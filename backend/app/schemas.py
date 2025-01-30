@@ -5,6 +5,7 @@ from pydantic import (
     EmailStr,
 )
 from typing import Union
+import datetime
 
 # token
 
@@ -104,3 +105,9 @@ class Auth(BaseModel):
 
 class ReservationIn(BaseModel):
     book_id: int
+
+
+class ReservationOut(BaseModel):
+    id: int
+    book: BookOut
+    created_at: datetime.datetime
