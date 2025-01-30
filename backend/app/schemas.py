@@ -106,6 +106,7 @@ class Auth(BaseModel):
 class ReservationIn(BaseModel):
     book_id: int
 
+
 class ReservationOut(BaseModel):
     id: int
     book: BookOut
