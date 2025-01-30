@@ -15,7 +15,7 @@ router = APIRouter(prefix="/purchase", tags=["Purchases"])
 
 # Done
 @router.post("/")
-async def create_client(
+async def reserve(
     reservation: schemas.ReservationIn,
     current_client: users.User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),

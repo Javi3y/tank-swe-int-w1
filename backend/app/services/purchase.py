@@ -7,10 +7,12 @@ from starlette.status import (
     HTTP_401_UNAUTHORIZED,
     HTTP_402_PAYMENT_REQUIRED,
     HTTP_403_FORBIDDEN,
+    HTTP_404_NOT_FOUND,
 )
 
 from app.models import books, purchase, users
 from app.services.clients import ClientService
+from app.services.books import BookService
 
 
 class PurchaseService:
@@ -55,7 +57,7 @@ class PurchaseService:
         return subscription
 
     async def reserve(
-        self, client_id, book_id, client_service: ClientService, db: AsyncSession
+            self, client_id, book_id, client_service: ClientService, db: AsyncSession
     ):
         client = await client_service.get_item(client_id, db)
         sub = await client_service.get_subscription(client_id, db)
@@ -64,11 +66,10 @@ class PurchaseService:
                 HTTP_403_FORBIDDEN, detail="user must have atleast a plus subscription"
             )
         prev_reservations = await self.get_reservations(client.id, db)
-        await self.can_reserve(sub.typ.value, prev_reservations)
-        can_reserve = self.can_reserve(book_id, db)
+        await self.can_reserve(sub.subscription_model.value, prev_reservations)
+        can_reserve = await self.reserve_or_queue(book_id, db)
         if can_reserve:
-            #reserve
-            pass
+            return await self.create_reservation(book_id, client.id, db)
         else :
             #add in queue
             pass
@@ -95,9 +96,19 @@ class PurchaseService:
                     HTTP_403_FORBIDDEN, detail="you can't reserve any more books"
                 )
 
-    async def can_reserve(self, book, db):
-        book = await db.execute(select(books.Book).where(books.Book_id==book))
-        return True if book.scalar().units > 0 else False
+    async def reserve_or_queue(self, book, db):
+        book = await db.execute(select(books.Book).where(books.Book.id==book))
+        book = book.scalar()
+        if not book:
+            raise HTTPException(HTTP_404_NOT_FOUND)
+        return True if book.units > 0 else False
+
+    async def create_reservation(self, book, client, db):
+        new_reservation = purchase.Reservation(book_id= book, client_id = client)
+        db.add(new_reservation)
+        await db.commit()
+        await db.refresh(new_reservation)
+        return new_reservation
             
 
 
