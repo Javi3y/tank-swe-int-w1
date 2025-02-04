@@ -37,6 +37,16 @@ async def get_latest(
     return await purchase_service.get_latest_in_queue(book_id, db)
 
 
+@router.get("/resolve")
+async def get_latest(
+    book_id: int,
+    purchase_service: PurchaseService = Depends(get_purchase_service),
+    client_service: ClientService = Depends(get_client_service),
+    db: AsyncSession = Depends(get_db),
+):
+    return await purchase_service.resolve_reservation_queue(client_service, book_id, db)
+
+
 ## I know that this isn't the right place will fix later! :D
 # @router.post("/subscribe")
 # async def subscribe(

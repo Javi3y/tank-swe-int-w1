@@ -4,7 +4,6 @@ from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.status import (
     HTTP_400_BAD_REQUEST,
-    HTTP_401_UNAUTHORIZED,
     HTTP_402_PAYMENT_REQUIRED,
     HTTP_403_FORBIDDEN,
     HTTP_404_NOT_FOUND,
@@ -135,7 +134,7 @@ class PurchaseService:
         await db.refresh(new_reservation_queue)
         return new_reservation_queue
 
-    async def get_latest_in_queue(self,book_id , db):
+    async def get_latest_in_queue(self, book_id, db):
         query = await db.execute(
             text(
                 f"""
@@ -163,22 +162,30 @@ class PurchaseService:
             SELECT id, book_id, client_id, subscription_model, created_at  -- Include id here
             FROM RankedReservations
             WHERE rank = { book_id }
-            ORDER BY book_id;
             """
             )
         )
-        results = query.fetchall()
-        reservations = [
-            {
-                "id": row.id,
-                "book_id": row.book_id,
-                "client_id": row.client_id,
-                "subscription_model": row.subscription_model,
-                "created_at": row.created_at,
+        result = query.fetchone()
+        reservations = {
+                "id": result.id,
+                "book_id": result.book_id,
+                "client_id": result.client_id,
+                "subscription_model": result.subscription_model,
+                "created_at": result.created_at,
             }
-            for row in results
-        ]
+        
         return reservations
+
+    async def resolve_reservation_queue(self, client_service: ClientService, book, db):
+        reservation = await self.get_latest_in_queue(book, db)
+        print(reservation)
+        prev_reservations = await self.get_reservations(reservation["client_id"], db)
+        client = await client_service.get_item(reservation["client_id"], db)
+        try:
+            await self.can_reserve(client.current_subscription, prev_reservations)
+        except HTTPException as e:
+            raise e
+        return reservation
 
 
 async def get_purchase_service() -> PurchaseService:
