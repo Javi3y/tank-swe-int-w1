@@ -77,7 +77,7 @@ async def subscribe(
     client_service: ClientService = Depends(get_client_service),
 ):
     sub = await purchase_service.purchase_subscription(
-        current_client, "plus", client_service, db
+        current_client, "premium", client_service, db
     )
     return {"sub": sub}
 
@@ -89,3 +89,13 @@ async def subscription(
     client_service: ClientService = Depends(get_client_service),
 ):
     return await client_service.get_subscription(current_client, db)
+
+
+@router.post("/balance", response_model=schemas.ClientOut)
+async def add_balance(
+    amount: int,
+    current_client: users.User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    purchase_service: PurchaseService = Depends(get_purchase_service),
+):
+    return await purchase_service.add_balance(current_client, amount, db)

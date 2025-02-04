@@ -14,17 +14,27 @@ router = APIRouter(prefix="/purchase", tags=["Purchases"])
 
 
 # Done
-@router.post("/")
-async def create_client(
+@router.post("/", response_model=schemas.ReservationOut)
+async def reserve(
     reservation: schemas.ReservationIn,
     current_client: users.User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     client_service: ClientService = Depends(get_client_service),
     purchase_service: PurchaseService = Depends(get_purchase_service),
 ):
-    return await purchase_service.reserve(
+    new_reservation = await purchase_service.reserve(
         current_client, reservation.book_id, client_service, db
     )
+    return new_reservation
+
+
+@router.get("/")
+async def get_latest(
+    book_id: int,
+    purchase_service: PurchaseService = Depends(get_purchase_service),
+    db: AsyncSession = Depends(get_db),
+):
+    return await purchase_service.get_latest_in_queue(book_id, db)
 
 
 ## I know that this isn't the right place will fix later! :D

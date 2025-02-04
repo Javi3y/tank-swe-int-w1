@@ -1,16 +1,18 @@
 from datetime import UTC, datetime, timedelta
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_401_UNAUTHORIZED,
     HTTP_402_PAYMENT_REQUIRED,
     HTTP_403_FORBIDDEN,
+    HTTP_404_NOT_FOUND,
 )
 
-from app.models import purchase, users
+from app.models import books, purchase, users
 from app.services.clients import ClientService
+from app.services.books import BookService
 
 
 class PurchaseService:
@@ -54,6 +56,18 @@ class PurchaseService:
         await db.refresh(subscription)
         return subscription
 
+    async def add_balance(self, client, amount, db: AsyncSession):
+        client = await db.execute(
+            select(users.Client).where(users.Client.id == client.id)
+        )
+        client = client.scalar()
+        if not client:
+            raise HTTPException(HTTP_404_NOT_FOUND)
+        client.balance += amount
+        await db.commit()
+        await db.refresh(client)
+        return client
+
     async def reserve(
         self, client_id, book_id, client_service: ClientService, db: AsyncSession
     ):
@@ -64,16 +78,12 @@ class PurchaseService:
                 HTTP_403_FORBIDDEN, detail="user must have atleast a plus subscription"
             )
         prev_reservations = await self.get_reservations(client.id, db)
-        await self.can_reserve(sub.typ.value, prev_reservations)
-        # plus
-        if sub.subscription_model.value == 2:
-            print(2)
-        # premium
-        elif sub.subscription_model.value == 3:
-            print(3)
+        await self.can_reserve(sub.subscription_model.value, prev_reservations)
+        can_reserve = await self.reserve_or_queue(book_id, db)
+        if can_reserve:
+            return await self.create_reservation(book_id, client.id, db)
         else:
-            raise HTTPException(HTTP_400_BAD_REQUEST)
-        return
+            return await self.create_reservation_queue(book_id, client.id, db)
 
     async def get_reservations(self, client_id, db: AsyncSession):
         reservations = await db.execute(
@@ -81,7 +91,7 @@ class PurchaseService:
                 purchase.Reservation.client_id == client_id
             )
         )
-        return reservations
+        return reservations.scalars()
 
     async def can_reserve(self, typ, reservations):
         reservations_count = len(reservations.all())
@@ -95,6 +105,80 @@ class PurchaseService:
                 raise HTTPException(
                     HTTP_403_FORBIDDEN, detail="you can't reserve any more books"
                 )
+
+    async def reserve_or_queue(self, book, db):
+        book = await db.execute(select(books.Book).where(books.Book.id == book))
+        book = book.scalar()
+        if not book:
+            raise HTTPException(HTTP_404_NOT_FOUND)
+        return True if book.units > 0 else False
+
+    async def create_reservation(self, book, client, db):
+        new_reservation = purchase.Reservation(book_id=book, client_id=client)
+        db.add(new_reservation)
+        await db.commit()
+        await db.refresh(new_reservation)
+        book_unit = await db.execute(select(books.Book).where(books.Book.id == book))
+        book_unit = book_unit.scalar()
+        book_unit.units -= 1
+        await db.commit()
+        await db.refresh(book_unit)
+        await db.refresh(new_reservation)
+        return new_reservation
+
+    async def create_reservation_queue(self, book, client, db):
+        new_reservation_queue = purchase.ReservationQueue(
+            book_id=book, client_id=client
+        )
+        db.add(new_reservation_queue)
+        await db.commit()
+        await db.refresh(new_reservation_queue)
+        return new_reservation_queue
+
+    async def get_latest_in_queue(self,book_id , db):
+        query = await db.execute(
+            text(
+                f"""
+            WITH RankedReservations AS (
+                SELECT
+                    rq.id,
+                    rq.book_id,
+                    rq.client_id,
+                    s.subscription_model,
+                    rq.created_at,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY rq.book_id
+                        ORDER BY
+                            CASE
+                                WHEN s.subscription_model = 'premium' THEN 1
+                                WHEN s.subscription_model = 'plus' THEN 2
+                                ELSE 3
+                            END,
+                            rq.created_at
+                    ) AS rank
+                FROM reservation_queue rq
+                JOIN client c ON rq.client_id = c.id
+                JOIN subscription s ON c.id = s.client_id
+            )
+            SELECT id, book_id, client_id, subscription_model, created_at  -- Include id here
+            FROM RankedReservations
+            WHERE rank = { book_id }
+            ORDER BY book_id;
+            """
+            )
+        )
+        results = query.fetchall()
+        reservations = [
+            {
+                "id": row.id,
+                "book_id": row.book_id,
+                "client_id": row.client_id,
+                "subscription_model": row.subscription_model,
+                "created_at": row.created_at,
+            }
+            for row in results
+        ]
+        return reservations
 
 
 async def get_purchase_service() -> PurchaseService:

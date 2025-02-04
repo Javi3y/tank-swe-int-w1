@@ -27,6 +27,12 @@ services:
     ports:
       - "${PGADMIN_PORT:-5050}:80"
     restart: unless-stopped
+    
+  redis:
+    container_name: redis
+    image: redis
+    ports:
+      - 6379:6379
   
   fapi:
     build: ./backend
@@ -39,7 +45,11 @@ services:
       SECRET_KEY: ${SECRET_KEY:-SomeRandomSalt}
       ALGORITHM: ${ALGORITHM:-HS256}
       ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-10080}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     ports:
       - 8000:8000
     depends_on:
       - postgres
+      - redis
+
