@@ -67,10 +67,6 @@ async def get_current_user(request: Request, db: AsyncSession = Depends(get_db))
     results = await db.execute(select(users.User).where(users.User.id == user_token.id))
     return results.scalar()
 
-
-router = APIRouter(prefix="/login", tags=["login"])
-
-
 async def check_user(user_credentials: schemas.Auth, db: AsyncSession)->users.User:
     results = await db.execute(
         select(users.User).where(
@@ -85,6 +81,9 @@ async def check_user(user_credentials: schemas.Auth, db: AsyncSession)->users.Us
         )
     return user
 
+
+
+router = APIRouter(prefix="/login", tags=["login"])
 
 @router.post("/")
 async def login(
