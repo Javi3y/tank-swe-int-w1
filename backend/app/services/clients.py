@@ -1,4 +1,3 @@
-from datetime import UTC, datetime
 from fastapi import HTTPException, Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,7 +12,7 @@ class ClientService:
         all_clients = await db.execute(select(users.Client))
         return all_clients.scalars().all()
 
-    async def get_item(self, id: int, db: AsyncSession) -> ClientOut:
+    async def get_item(self, id: users.User, db: AsyncSession) -> ClientOut:
         client = await db.execute(select(users.Client).where(users.Client.id == id))
         client = client.scalar()
         if not client:
@@ -33,7 +32,7 @@ class ClientService:
         return new_client
 
     async def update_item(
-        self, client: ClientUpdate, current_client: int, db: AsyncSession
+        self, client: ClientUpdate, current_client: users.User, db: AsyncSession
     ):
 
         updated_client = current_client

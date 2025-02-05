@@ -19,7 +19,7 @@ async def check_admin(admin):
 
 @router.get("/", response_model=List[schemas.UserOut])
 async def get_admin(
-    current_admin: int = Depends(get_current_user),
+    current_admin: users.Admin = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     admin_service: AdminService = Depends(get_admin_service),
 ):
@@ -29,7 +29,7 @@ async def get_admin(
 
 @router.get("/profile", response_model=schemas.UserOut)
 async def get_profile(
-    current_admin: int = Depends(get_current_user),
+    current_admin: users.Admin = Depends(get_current_user),
 ):
     await check_admin(current_admin)
     return current_admin

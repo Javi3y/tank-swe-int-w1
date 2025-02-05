@@ -28,10 +28,10 @@ async def create_access_token(data: dict):
 async def verify_access_token(token: str, credentials_exception):
     try:
         payload = jwt.decode(token, SECRET_KEY, ALGORITHM)
-        id: str = payload.get("user_id")
+        id: str | None = payload.get("user_id")
         if not id:
             raise credentials_exception
-        token_data = schemas.TokenData(id=id)
+        token_data = schemas.TokenData(id=int(id))
         db_generator = get_db()
         db = await anext(db_generator)
         try:
@@ -47,7 +47,7 @@ async def verify_access_token(token: str, credentials_exception):
     return token_data
 
 
-async def get_current_user(request: Request, db: AsyncSession = Depends(get_db)):
+async def get_current_user(request: Request, db: AsyncSession = Depends(get_db)) -> users.User | None:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail=f"Could not validate credentials",
@@ -71,7 +71,7 @@ async def get_current_user(request: Request, db: AsyncSession = Depends(get_db))
 router = APIRouter(prefix="/login", tags=["login"])
 
 
-async def check_user(user_credentials: schemas.Auth, db: AsyncSession):
+async def check_user(user_credentials: schemas.Auth, db: AsyncSession)->users.User:
     results = await db.execute(
         select(users.User).where(
             (users.User.username == user_credentials.username)

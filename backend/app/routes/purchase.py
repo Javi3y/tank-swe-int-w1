@@ -38,7 +38,7 @@ async def get_latest(
 
 
 @router.get("/resolve")
-async def get_latest(
+async def resolve_latest(
     book_id: int,
     purchase_service: PurchaseService = Depends(get_purchase_service),
     client_service: ClientService = Depends(get_client_service),

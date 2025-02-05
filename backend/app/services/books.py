@@ -7,6 +7,7 @@ from starlette.status import (
     HTTP_404_NOT_FOUND,
 )
 from app.models import books
+from app.models.users import User
 from app.schemas import Book, BookOut
 from typing import List
 
@@ -33,7 +34,7 @@ class BookService:
     async def create_item(
         self,
         book: Book,
-        user: int,
+        user: User,
         author_service: AuthorService,
         book_author_service: "BookAuthorService",
         book_service: "BookService",

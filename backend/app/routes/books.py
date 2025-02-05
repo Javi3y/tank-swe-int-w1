@@ -32,7 +32,7 @@ async def check_admin(user):
 async def create_book(
     book: schemas.Book,
     book_service: BookService = Depends(get_book_service),
-    current_user: int = Depends(get_current_user),
+    current_user: users.User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     author_service: AuthorService = Depends(get_author_service),
     book_author_service: BookAuthorService = Depends(get_book_author_service),
@@ -58,7 +58,7 @@ async def get_books(
 # @router.patch("/", response_model=schemas.ClientOut)
 # async def update_client(
 #    updated_client: schemas.ClientUpdate,
-#    current_client: int = Depends(get_current_user),
+#    current_client: users.User = Depends(get_current_user),
 #    db: AsyncSession = Depends(get_db),
 # ):
 #    if not client:
@@ -112,7 +112,7 @@ async def get_authors(
 async def add_author(
     id: int,
     author: int,
-    current_user: int = Depends(get_current_user),
+    current_user: users.User = Depends(get_current_user),
     author_service: AuthorService = Depends(get_author_service),
     book_service: BookService = Depends(get_book_service),
     book_author_service: BookAuthorService = Depends(get_book_author_service),

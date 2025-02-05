@@ -42,7 +42,7 @@ async def get_client(
 @router.patch("/", response_model=schemas.ClientOut)
 async def update_client(
     updated_client: schemas.ClientUpdate,
-    current_client: int = Depends(get_current_user),
+    current_client: users.User = Depends(get_current_user),
     client_service: ClientService = Depends(get_client_service),
     db: AsyncSession = Depends(get_db),
 ):
@@ -62,7 +62,7 @@ async def delete_client(
 @router.get("/profile", response_model=schemas.ClientOut)
 async def get_profile(
     client_service: ClientService = Depends(get_client_service),
-    current_client: int = Depends(get_current_user),
+    current_client: users.User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     return await client_service.get_item(current_client, db)
