@@ -7,10 +7,16 @@ from app import schemas
 from app.auth import get_current_user
 from app.database import get_db
 from fastapi import Depends
+from app.repository.authors import AuthorRepository
 from app.services.author import get_author_service, AuthorService
+from app.unit_of_work.uow import UnitOfWork
 
 router = APIRouter(prefix="/authors", tags=["Authors"])
 
+def get_uow(repo_cls):
+    async def _get_uow(db: AsyncSession = Depends(get_db)) -> UnitOfWork:
+        return UnitOfWork(db, repo_cls)
+    return Depends(_get_uow)
 
 # @router.post("/")
 # async def create_author(author: schemas.AuthorCreate, db: AsyncSession = Depends(get_db)):
@@ -28,9 +34,9 @@ router = APIRouter(prefix="/authors", tags=["Authors"])
 @router.get("/", response_model=List[schemas.AuthorOut])
 async def get_authors(
     author_service: AuthorService = Depends(get_author_service),
-    db: AsyncSession = Depends(get_db),
+    uow: UnitOfWork = get_uow(AuthorRepository)
 ):
-    return await author_service.get_items(db)
+    return await author_service.get_items(uow)
 
 
 # @router.patch("/", response_model=schemas.AuthorOut)

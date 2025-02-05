@@ -8,9 +8,10 @@ from typing import List
 
 
 class AuthorService:
-    async def get_items(self, db: AsyncSession) -> List[AuthorOut]:
-        all_authors = await db.execute(select(users.Author))
-        return all_authors.scalars().all()
+    async def get_items(self, uow) -> List[AuthorOut]:
+        async with uow:
+            repo = uow.repo
+            return await repo.get_items()
 
     async def get_item(self, id: int, db: AsyncSession):
         author = await db.execute(select(users.Author).where(users.Author.id == id))

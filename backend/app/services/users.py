@@ -6,14 +6,14 @@ from app.models import users
 from app.schemas import UserOut
 from typing import List
 
-from app.unit_of_work.user_uow import UserUnitOfWork
+from app.unit_of_work.uow import UnitOfWork
 
 
 class UserService:
-    async def get_items(self, db: AsyncSession) -> List[UserOut]:
-        async with UserUnitOfWork(db) as uow:
+    async def get_items(self, uow) -> List[UserOut]:
+        async with uow:
             repo = uow.repo
-            return await repo.get_users()
+            return await repo.get_items()
 
     async def get_item(self, id: int, db: AsyncSession) -> UserOut:
         user = await db.execute(select(users.User).where(users.User.id == id))

@@ -12,12 +12,18 @@ from app.auth import get_current_user
 from app.database import get_db
 from fastapi import Depends
 from app.models import users
+from app.repository.clients import ClientRepository
 from app.services.clients import ClientService, get_client_service
 from app.services.purchase import PurchaseService, get_purchase_service
+from app.unit_of_work.uow import UnitOfWork
 
 
 router = APIRouter(prefix="/clients", tags=["Clients"])
 
+def get_uow(repo_cls):
+    async def _get_uow(db: AsyncSession = Depends(get_db)) -> UnitOfWork:
+        return UnitOfWork(db, repo_cls)
+    return Depends(_get_uow)
 
 # Done
 @router.post("/", response_model=schemas.ClientOut)
@@ -33,9 +39,9 @@ async def create_client(
 @router.get("/", response_model=List[schemas.ClientOut])
 async def get_client(
     client_service: ClientService = Depends(get_client_service),
-    db: AsyncSession = Depends(get_db),
+    uow: UnitOfWork = get_uow(ClientRepository)
 ):
-    return await client_service.get_items(db)
+    return await client_service.get_items(uow)
 
 
 # Done
