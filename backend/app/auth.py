@@ -47,7 +47,9 @@ async def verify_access_token(token: str, credentials_exception):
     return token_data
 
 
-async def get_current_user(request: Request, db: AsyncSession = Depends(get_db)) -> users.User | None:
+async def get_current_user(
+    request: Request, db: AsyncSession = Depends(get_db)
+) -> users.User | None:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail=f"Could not validate credentials",
@@ -71,7 +73,7 @@ async def get_current_user(request: Request, db: AsyncSession = Depends(get_db))
 router = APIRouter(prefix="/login", tags=["login"])
 
 
-async def check_user(user_credentials: schemas.Auth, db: AsyncSession)->users.User:
+async def check_user(user_credentials: schemas.Auth, db: AsyncSession) -> users.User:
     results = await db.execute(
         select(users.User).where(
             (users.User.username == user_credentials.username)

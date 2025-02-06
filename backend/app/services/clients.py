@@ -12,8 +12,15 @@ class ClientService:
         all_clients = await db.execute(select(users.Client))
         return all_clients.scalars().all()
 
-    async def get_item(self, id: users.User, db: AsyncSession) -> ClientOut:
+    async def get_item_by_id(self, id: users.User, db: AsyncSession) -> ClientOut:
         client = await db.execute(select(users.Client).where(users.Client.id == id))
+        client = client.scalar()
+        if not client:
+            raise HTTPException(HTTP_404_NOT_FOUND, detail="client not found")
+        return client
+
+    async def get_item(self, id: users.User, db: AsyncSession) -> ClientOut:
+        client = await db.execute(select(users.Client).where(users.Client.id == id.id))
         client = client.scalar()
         if not client:
             raise HTTPException(HTTP_404_NOT_FOUND, detail="client not found")

@@ -94,6 +94,7 @@ class PurchaseService:
 
     async def can_reserve(self, typ, reservations):
         reservations_count = len(reservations.all())
+        print(typ)
         if typ == 2:
             if reservations_count >= 5:
                 raise HTTPException(
@@ -166,26 +167,46 @@ class PurchaseService:
             )
         )
         result = query.fetchone()
-        reservations = {
+        if result:
+            return {
                 "id": result.id,
                 "book_id": result.book_id,
                 "client_id": result.client_id,
                 "subscription_model": result.subscription_model,
                 "created_at": result.created_at,
             }
-        
-        return reservations
+        return None
+
+    async def get_reservation_queue_by_id(self, id: int, db: AsyncSession):
+        reservation = await db.execute(
+            select(purchase.ReservationQueue).where(purchase.ReservationQueue.id == id)
+        )
+        reservation = reservation.scalar()
+        return reservation
+
+    async def delete_reservation_from_queue(self, id: int, db: AsyncSession):
+        reservation = await self.get_reservation_queue_by_id(id, db)
+        await db.delete(reservation)
+        await db.commit()
 
     async def resolve_reservation_queue(self, client_service: ClientService, book, db):
         reservation = await self.get_latest_in_queue(book, db)
-        print(reservation)
+        if not reservation:
+            raise HTTPException(HTTP_404_NOT_FOUND, detail="no reservation found")
         prev_reservations = await self.get_reservations(reservation["client_id"], db)
-        client = await client_service.get_item(reservation["client_id"], db)
+        client = await client_service.get_item_by_id(reservation["client_id"], db)
         try:
-            await self.can_reserve(client.current_subscription, prev_reservations)
+            await self.can_reserve(
+                client.current_subscription.subscription_model.value, prev_reservations
+            )
         except HTTPException as e:
+            await self.delete_reservation_from_queue(reservation["id"], db)
             raise e
-        return reservation
+        try:
+            await self.create_reservation(book, reservation["client_id"], db)
+            await self.delete_reservation_from_queue(reservation["id"], db)
+        except HTTPException as e:
+            await db.rollback() 
 
 
 async def get_purchase_service() -> PurchaseService:
